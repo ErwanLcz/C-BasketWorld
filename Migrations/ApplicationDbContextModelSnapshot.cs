@@ -237,6 +237,9 @@ namespace BasketWorld.Migrations
                     b.Property<int?>("ExternalId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("HeroImageUrl")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("LeagueId")
                         .HasColumnType("INTEGER");
 

@@ -1,6 +1,10 @@
 @model BasketWorld.Models.ViewModels.LeaguePageViewModel
 @{
     ViewData["Title"] = Model.LeagueName;
+
+    // Helpers pour fallback si une héro-image n’est pas renseignée
+    string HomeHero(dynamic g) => g?.HomeTeam?.HeroImageUrl ?? Url.Content("~/images/team-bg/default-home.png");
+    string AwayHero(dynamic g) => g?.AwayTeam?.HeroImageUrl ?? Url.Content("~/images/team-bg/default-away.png");
 }
 
 <h1 class="mb-4" style="color: var(--orange)">@Model.LeagueName</h1>
@@ -24,32 +28,36 @@
     </div>
 }
 
-@if (Model.UpcomingGames.Any())
+@if (Model.UpcomingGames?.Any() == true)
 {
     <h2 class="h4 mb-3">Matchs à venir</h2>
     <div class="games-list">
         @foreach (var g in Model.UpcomingGames)
         {
-            <div class="game-card">
-                <div class="teams">
-                    <div class="team">
-                        <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
-                        <span>@g.HomeTeam?.Name</span>
-                    </div>
-                    <strong class="vs">vs</strong>
-                    <div class="team">
-                        <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
-                        <span>@g.AwayTeam?.Name</span>
-                    </div>
+            <div class="game-card"
+                style="background-image:
+                        linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.55)),
+                        url('@HomeHero(g)');">
+            <div class="bg-away" style="background-image:url('@AwayHero(g)')"></div>
+
+            <div class="teams">
+                <div class="team home">
+                <span class="name">@g.HomeTeam?.Name</span>
+                <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
                 </div>
-                <div class="meta">
-                    <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
-                    @if (!string.IsNullOrWhiteSpace(g.Venue))
-                    {
-                        <span class="venue">— @g.Venue</span>
-                    }
+                <strong class="vs">vs</strong>
+                <div class="team away">
+                <span class="name">@g.AwayTeam?.Name</span>
+                <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
                 </div>
-                <a class="btn-reserve" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Détails & Réserver</a>
+            </div>
+
+            <div class="meta">
+                <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
+                @if (!string.IsNullOrWhiteSpace(g.Venue)) { <span class="venue">— @g.Venue</span> }
+            </div>
+
+            <a class="btn-reserve" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Détails & Réserver</a>
             </div>
         }
     </div>
@@ -59,47 +67,64 @@ else
     <p>Aucun match à venir pour le moment.</p>
 }
 
-@if (Model.PastGames.Any())
+@if (Model.PastGames?.Any() == true)
 {
     <h2 class="h4 mt-5 mb-3">Résultats récents</h2>
     <div class="games-list past">
         @foreach (var g in Model.PastGames)
         {
-            <div class="game-card past">
+            <div class="game-card"
+                    style="background-image:
+                            linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.55)),
+                            url('@HomeHero(g)');">
+                <div class="bg-away" style="background-image:url('@AwayHero(g)')"></div>
+
                 <div class="teams">
-                    <div class="team">
-                        <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
-                        <span>@g.HomeTeam?.Name</span>
+                    <div class="team home">
+                    <span class="name">@g.HomeTeam?.Name</span>
+                    <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
                     </div>
                     <strong class="vs">vs</strong>
-                    <div class="team">
-                        <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
-                        <span>@g.AwayTeam?.Name</span>
+                    <div class="team away">
+                    <span class="name">@g.AwayTeam?.Name</span>
+                    <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
                     </div>
                 </div>
+
                 <div class="meta">
                     <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
-                    @if (g.HomeScore.HasValue && g.AwayScore.HasValue)
-                    {
-                        <span class="score">— @g.HomeScore : @g.AwayScore</span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(g.Status))
-                    {
-                        <span class="status">(@g.Status)</span>
-                    }
+                    @if (!string.IsNullOrWhiteSpace(g.Venue)) { <span class="venue">— @g.Venue</span> }
                 </div>
-                <a class="btn-reserve secondary" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Voir le match</a>
-            </div>
+
+                <a class="btn-reserve" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Détails & Réserver</a>
+                </div>
         }
     </div>
 }
 
 <script>
-(function() {
-  const el = document.getElementById('logoCarousel');
-  if (!el) return;
-  const step = 5 * 132; // ~5 logos
-  document.querySelector('.carousel-btn.left')?.addEventListener('click', () => el.scrollBy({ left: -step, behavior: 'smooth' }));
-  document.querySelector('.carousel-btn.right')?.addEventListener('click', () => el.scrollBy({ left: step, behavior: 'smooth' }));
-})();
+document.addEventListener('DOMContentLoaded', () => {
+  const wrap = document.querySelector('.logo-carousel-wrapper');
+  const scroller = wrap?.querySelector('#logoCarousel');
+  const btnL = wrap?.querySelector('.carousel-btn.left');
+  const btnR = wrap?.querySelector('.carousel-btn.right');
+  if (!wrap || !scroller || !btnL || !btnR) return;
+
+  const cell = () => (scroller.firstElementChild?.getBoundingClientRect().width || 132);
+  const step = () => Math.max(Math.round(scroller.clientWidth * 0.8), Math.round(5 * cell()));
+
+  const updateArrows = () => {
+    const max = scroller.scrollWidth - scroller.clientWidth - 1;
+    btnL.classList.toggle('is-disabled', scroller.scrollLeft <= 0);
+    btnR.classList.toggle('is-disabled', scroller.scrollLeft >= max);
+    btnL.setAttribute('aria-disabled', btnL.classList.contains('is-disabled'));
+    btnR.setAttribute('aria-disabled', btnR.classList.contains('is-disabled'));
+  };
+
+  btnL.addEventListener('click', () => scroller.scrollBy({ left: -step(), behavior: 'smooth' }));
+  btnR.addEventListener('click', () => scroller.scrollBy({ left:  step(), behavior: 'smooth' }));
+  scroller.addEventListener('scroll', updateArrows, { passive: true });
+
+  updateArrows();
+});
 </script>
