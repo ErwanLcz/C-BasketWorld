@@ -1,0 +1,90 @@
+﻿@{
+    ViewData["Title"] = "Accueil";
+    var last3 = ViewBag.Last3 as List<Game>;
+    var next3 = ViewBag.Next3 as List<Game>;
+}
+
+<div class="mb-5 text-white">
+    <h1 class="mb-3">Bienvenue sur <span style= "color: var(--orange)">BasketWorld</span></h1>
+    <p class="lead">
+        Réservez vos places pour les matchs 
+        <strong style= "color: var(--orange)">NBA</strong> et 
+        <strong style= "color: var(--orange)">EuroLeague</strong>.
+    </p>
+</div>
+
+<h2 class="mb-3" style= "color: var(--orange)">Derniers résultats</h2>
+<div class="row g-3 mb-5">
+    @if (last3 != null && last3.Any())
+    {
+        foreach (var g in last3)
+        {
+            <div class="col-md-4">
+                <div class="card bg-dark text-white border border-warning shadow-lg p-3 h-100">
+                @if (g.Status == "Final" && g.HomeScore.HasValue && g.AwayScore.HasValue)
+                    {
+                    <div class="mt-2">
+                        <span class="badge text-bg-secondary">Final</span>
+                        <div class="fw-bold mt-1">@g.HomeTeam.Name @g.HomeScore - @g.AwayScore @g.AwayTeam.Name</div>
+                    </div>
+                    }
+
+                    <h5 class="card-title style= "color: var(--orange)"">@g.League.Name</h5>
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                        <img src="@g.HomeTeam.LogoUrl" alt="@g.HomeTeam.Name" class="rounded" style="width:40px;height:40px;object-fit:contain;">
+                        <strong>@g.HomeTeam.Name</strong>
+                        <span class="text-secondary">vs</span>
+                        <strong>@g.AwayTeam.Name</strong>
+                        <img src="@g.AwayTeam.LogoUrl" alt="@g.AwayTeam.Name" class="rounded" style="width:40px;height:40px;object-fit:contain;">
+                    </div>
+                    <div class="text-light">
+                        @g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.Venue
+                    </div>
+                    <div class="mt-3">
+                        <a class="btn btn-outline-warning btn-sm w-100" 
+                           asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
+                            Voir le match
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-white">Aucun match passé.</div>
+    }
+</div>
+
+<h2 class="mb-3" style= "color: var(--orange)">Prochains matchs</h2>
+<div class="row g-3">
+    @if (next3 != null && next3.Any())
+    {
+        foreach (var g in next3)
+        {
+            <div class="col-md-4">
+                <div class="card bg-dark text-white border border-warning shadow-lg p-3 h-100">
+                    <h5 class="card-title style= "color: var(--orange)"">@g.League.Name</h5>
+                    <div class="mb-2">
+                        <strong>@g.HomeTeam.Name</strong> 
+                        <span class="text-secondary">vs</span> 
+                        <strong>@g.AwayTeam.Name</strong>
+                    </div>
+                    <div class="text-light">
+                        @g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.Venue
+                    </div>
+                    <div class="mt-3">
+                        <a class="btn btn-warning text-dark fw-bold w-100" 
+                           asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
+                            Réserver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-muted">Aucun match à venir.</div>
+    }
+</div>

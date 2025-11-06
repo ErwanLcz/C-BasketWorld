@@ -1,0 +1,93 @@
+@model List<BasketWorld.Models.Reservation>
+@{
+    ViewData["Title"] = "Mes billets";
+}
+
+<h1 class="mb-4 text-warning">Mes billets</h1>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Vous n’avez pas encore de réservation.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var r in Model)
+        {
+            var line = r.Lines?.FirstOrDefault(l => l?.TicketOffer?.Game != null);
+            var game = line?.TicketOffer?.Game;
+
+            <div class="col-md-6">
+                <div class="card bg-dark text-white border border-warning shadow-lg p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <div class="small text-secondary">Réservation</div>
+                            <div class="fw-semibold">#@r.Id</div>
+                        </div>
+                        <span class="badge @(r.Status=="Paid" ? "text-bg-success" : r.Status=="Pending" ? "text-bg-warning" : "text-bg-secondary")">
+                            @r.Status
+                        </span>
+                    </div>
+
+                    @if (game != null)
+                    {
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                            <img src="@game.HomeTeam.LogoUrl" alt="@game.HomeTeam.Name" class="rounded" style="width:35px;height:35px;object-fit:contain;">
+                            <strong>@game.HomeTeam.Name</strong>
+                            <span class="text-secondary">vs</span>
+                            <strong>@game.AwayTeam.Name</strong>
+                            <img src="@game.AwayTeam.LogoUrl" alt="@game.AwayTeam.Name" class="rounded" style="width:35px;height:35px;object-fit:contain;">
+                        </div>
+                        <div class="text-light mb-2">
+                            @game.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @game.Venue
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm align-middle mb-2">
+                            <thead>
+                                <tr class="text-warning">
+                                    <th>Catégorie</th>
+                                    <th>Qté</th>
+                                    <th>PU (€)</th>
+                                    <th>Total (€)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var l in r.Lines ?? Enumerable.Empty<BasketWorld.Models.ReservationLine>())
+                                {
+                                    <tr>
+                                        <td>@(l.TicketOffer?.SeatCategory?.Name ?? "—")</td>
+                                        <td>@l.Quantity</td>
+                                        <td>@l.UnitPrice.ToString("0.00")</td>
+                                        <td>@(l.UnitPrice * l.Quantity).ToString("0.00")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">Total</th>
+                                    <th class="text-warning">@r.TotalAmount.ToString("0.00")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-auto">
+                        <a class="btn btn-outline-warning btn-sm"
+                           asp-controller="Reservations" asp-action="Confirm" asp-route-id="@r.Id">
+                           Voir le billet
+                        </a>
+                        @if (game != null)
+                        {
+                            <a class="btn btn-warning text-dark btn-sm"
+                               asp-controller="Games" asp-action="Details" asp-route-id="@game.Id">
+                               Détails du match
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

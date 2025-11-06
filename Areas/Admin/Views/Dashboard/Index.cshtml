@@ -1,0 +1,86 @@
+@using BasketWorld.Models
+@model IEnumerable<Game>
+@{
+    ViewData["Title"] = "Dashboard Admin";
+}
+
+<h1 class="mb-4">Dashboard Admin</h1>
+
+@if (TempData["err"] != null)
+{
+    <div class="alert alert-danger">@TempData["err"]</div>
+}
+@if (TempData["msg"] != null)
+{
+    <div class="alert alert-success">@TempData["msg"]</div>
+}
+
+<div class="d-flex gap-2 mb-3">
+  <!-- Utilise exactement la fenêtre -->
+  <a class="btn btn-warning"
+     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
+     asp-route-mode="exact">Sync NBA (rapide)</a>
+
+  <a class="btn btn-outline-warning"
+     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
+     asp-route-past="30" asp-route-next="7" asp-route-mode="exact">
+     Sync NBA (30j passés / 7j à venir)
+  </a>
+
+  <a class="btn btn-outline-warning"
+     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
+     asp-route-past="120" asp-route-next="0" asp-route-mode="exact">
+     Sync NBA (120j passés)
+  </a>
+
+  <!-- Déroule plusieurs fenêtres jusqu’à trouver (et additionne) -->
+  <a class="btn btn-outline-success"
+     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
+     asp-route-past="7" asp-route-next="7" asp-route-mode="expand" asp-route-minMatches="5">
+     Sync NBA (élargir jusqu’à ≥5 matchs)
+  </a>
+</div>
+
+
+<h3 class="mb-3">Derniers matchs NBA en base (source: balldontlie)</h3>
+@if (Model == null || !Model.Any())
+{
+    <div class="text-muted">Aucun match NBA trouvé en base pour le moment.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Match</th>
+                    <th>Status / Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var g in Model)
+                {
+                    <tr>
+                        <td>@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@g.HomeTeam?.Name vs @g.AwayTeam?.Name</td>
+                        <td>
+                            @if (string.Equals(g.Status, "Final", StringComparison.OrdinalIgnoreCase)
+                                && g.HomeScore.HasValue && g.AwayScore.HasValue)
+                            {
+                                <span class="badge text-bg-secondary">Final</span>
+                                <span class="ms-2 fw-semibold">@g.HomeScore - @g.AwayScore</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-warning">
+                                    @(string.IsNullOrWhiteSpace(g.Status) ? "Scheduled" : g.Status)
+                                </span>
+                            }
+                            </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

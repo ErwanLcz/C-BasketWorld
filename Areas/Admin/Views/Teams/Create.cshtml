@@ -1,0 +1,39 @@
+@model BasketWorld.Models.Team
+@{
+    ViewData["Title"] = "Ajouter une équipe";
+    var leagues = ViewBag.Leagues as List<League>;
+}
+<h1>Ajouter une équipe</h1>
+
+@if (TempData["ok"] != null)
+{
+    <div class="alert alert-success">@TempData["ok"]</div>
+}
+
+<form method="post" class="card p-3">
+  @Html.AntiForgeryToken()
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Nom</label>
+      <input class="form-control" asp-for="Name" required />
+      <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Ligue</label>
+      <select class="form-select" asp-for="LeagueId" required>
+        <option value="">-- Sélectionner --</option>
+        @foreach (var l in leagues!)
+        {
+          <option value="@l.Id">@l.Name</option>
+        }
+      </select>
+      <span asp-validation-for="LeagueId" class="text-danger"></span>
+    </div>
+  </div>
+  <button class="btn btn-primary mt-3" type="submit">Ajouter</button>
+  <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-light mt-3 ms-2">Retour</a>
+</form>
+
+@section Scripts{
+  <partial name="_ValidationScriptsPartial" />
+}

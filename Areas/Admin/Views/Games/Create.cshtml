@@ -1,0 +1,100 @@
+@model BasketWorld.ViewModels.Admin.GameCreateVM
+@{
+    ViewData["Title"] = "Créer un match";
+    var leagues = ViewBag.Leagues as List<League>;
+    var teams = ViewBag.Teams as List<Team>;
+    var cats = ViewBag.SeatCategories as List<SeatCategory>;
+}
+
+<h1 class="mb-4">Créer un match</h1>
+
+@if (TempData["ok"] != null)
+{
+    <div class="alert alert-success">@TempData["ok"]</div>
+}
+
+<form asp-action="Create" method="post" class="card p-3">
+  @Html.AntiForgeryToken()
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Ligue</label>
+      <select class="form-select" asp-for="LeagueId" required>
+        <option value="">-- Sélectionner --</option>
+        @foreach (var l in leagues!)
+        {
+            <option value="@l.Id">@l.Name</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Salle / Ville</label>
+      <input class="form-control" asp-for="Venue" required />
+      <span asp-validation-for="Venue" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Équipe domicile</label>
+      <select class="form-select" asp-for="HomeTeamId" required>
+        <option value="">-- Sélectionner --</option>
+        @foreach (var t in teams!)
+        {
+            <option value="@t.Id">@t.Name (@t.League.Name)</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Équipe extérieure</label>
+      <select class="form-select" asp-for="AwayTeamId" required>
+        <option value="">-- Sélectionner --</option>
+        @foreach (var t in teams!)
+        {
+            <option value="@t.Id">@t.Name (@t.League.Name)</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Date & heure</label>
+      <input class="form-control" asp-for="StartAt" type="datetime-local"
+             value="@Model.StartAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" required />
+      <span asp-validation-for="StartAt" class="text-danger"></span>
+    </div>
+  </div>
+
+  <hr class="my-4"/>
+
+  <h4>Offres (catégories / tarifs / quotas)</h4>
+  <div id="offers">
+    @for (int i = 0; i < Model.Offers.Count; i++)
+    {
+      <div class="row g-3 align-items-end mb-2">
+        <div class="col-md-5">
+          <label class="form-label">Catégorie</label>
+          <select class="form-select" asp-for="Offers[@i].SeatCategoryId">
+            <option value="">-- Sélectionner --</option>
+            @foreach (var c in cats!)
+            {
+              <option value="@c.Id">@c.Name</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Prix (€)</label>
+          <input class="form-control" asp-for="Offers[@i].Price" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quota</label>
+          <input class="form-control" asp-for="Offers[@i].Quota" />
+        </div>
+      </div>
+    }
+  </div>
+
+  <button class="btn btn-primary mt-3" type="submit">Créer le match</button>
+  <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-light mt-3 ms-2">Retour</a>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}

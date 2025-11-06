@@ -1,0 +1,76 @@
+@model BasketWorld.Models.Reservation
+@{
+    ViewData["Title"] = "Vérification de la réservation";
+
+    // On choisit la première ligne COMPLETEMENT peuplée
+    var line = Model?.Lines?.FirstOrDefault(l =>
+        l != null &&
+        l.TicketOffer != null &&
+        l.TicketOffer.Game != null &&
+        l.TicketOffer.SeatCategory != null
+    );
+
+    var game = line?.TicketOffer?.Game;
+}
+
+@if (Model == null)
+{
+    <div class="alert alert-warning">Réservation introuvable.</div>
+}
+else if (line == null || game == null)
+{
+    <div class="alert alert-warning">
+        La réservation @Model.Id n'est pas encore prête (ligne manquante ou incomplète).
+        <div class="mt-2">
+            <a class="btn btn-outline-warning" asp-controller="Home" asp-action="Index">⬅ Retour à l'accueil</a>
+        </div>
+        <div class="mt-3 small text-muted">
+            Debug: Lines=@(Model.Lines?.Count ?? 0)
+        </div>
+    </div>
+}
+else
+{
+    <div class="card bg-dark text-white border border-warning shadow-lg p-4 mx-auto" style="max-width: 800px;">
+        <h1 class="mb-4 text-warning text-center">Récapitulatif</h1>
+
+        <div class="mb-3 text-center">
+            <div class="fs-5">
+                <strong>@(game.HomeTeam?.Name ?? "—")</strong>
+                <span class="text-secondary">vs</span>
+                <strong>@(game.AwayTeam?.Name ?? "—")</strong>
+                <span class="text-secondary">(@(game.League?.Name ?? "—"))</span>
+            </div>
+            <div>
+                @game.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @(game.Venue ?? "—")
+            </div>
+        </div>
+
+        <hr class="border-warning opacity-50" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card bg-dark text-white border border-warning p-3 h-100">
+                    <div><span class="text-secondary">Catégorie :</span> <strong>@(line.TicketOffer.SeatCategory?.Name ?? "—")</strong></div>
+                    <div><span class="text-secondary">Quantité :</span> <strong>@line.Quantity</strong></div>
+                    <div><span class="text-secondary">Prix unitaire :</span> <strong>@line.UnitPrice €</strong></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-dark text-white border border-warning p-3 h-100 d-flex justify-content-center">
+                    <div class="fs-4 text-center">
+                        Total : <strong class="text-warning">@Model.TotalAmount €</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Pay" method="post" class="mt-4 text-center">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Payer (simulation)</button>
+            <a class="btn btn-outline-warning ms-2"
+               asp-controller="Games" asp-action="Details" asp-route-id="@game.Id">Retour</a>
+        </form>
+    </div>
+}

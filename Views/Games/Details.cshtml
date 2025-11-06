@@ -1,0 +1,92 @@
+@model Game
+@{
+    ViewData["Title"] = $"{Model.HomeTeam.Name} vs {Model.AwayTeam.Name}";
+}
+
+<div class="card bg-dark text-white border border-warning shadow-lg p-4 mx-auto" style="max-width: 1000px;">
+    <h1 class="card-title text-center mb-4" style= "color: var(--orange)">
+        @Model.HomeTeam.Name <span class="text-secondary">vs</span> @Model.AwayTeam.Name
+    </h1>
+
+    <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+        <img src="@(Url.Content(Model.HomeTeam.LogoUrl ?? "~/images/logos/default.png"))"
+            alt="@Model.HomeTeam.Name"
+            style="width:80px;height:80px;object-fit:contain;"
+            onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+
+        <h1 class="mb-0 text-warning">@Model.HomeTeam.Name</h1>
+        <span class="text-secondary">vs</span>
+        <h1 class="mb-0 text-warning">@Model.AwayTeam.Name</h1>
+
+        <img src="@(Url.Content(Model.AwayTeam.LogoUrl ?? "~/images/logos/default.png"))"
+            alt="@Model.AwayTeam.Name"
+            style="width:80px;height:80px;object-fit:contain;"
+            onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+    </div>
+
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="small text-uppercase text-secondary">Ligue</div>
+            <div class="fw-semibold">@Model.League.Name</div>
+        </div>
+        <div class="col-md-4">
+            <div class="small text-uppercase text-secondary">Quand</div>
+            <div class="fw-semibold">@Model.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+        <div class="col-md-4">
+            <div class="small text-uppercase text-secondary">Lieu</div>
+            <div class="fw-semibold">@Model.Venue</div>
+        </div>
+    </div>
+
+    <hr class="border-warning opacity-50" />
+
+    <h3 class="mb-3" style= "color: var(--orange)">Catégories & tarifs</h3>
+
+    @if (Model.Offers == null || !Model.Offers.Any())
+    {
+        <div class="text-muted">Aucune offre pour ce match.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var o in Model.Offers.OrderBy(x => x.Price))
+            {
+                <div class="col-md-4">
+                    <div class="card bg-dark text-white border border-warning h-100 p-3">
+                        <h5 class="card-title" style= "color: var(--orange)">@o.SeatCategory.Name</h5>
+                        <p class="mb-1">Prix : <strong>@o.Price €</strong></p>
+                        <p class="mb-3">Disponibles : @o.Available</p>
+
+                        @if (o.Available > 0)
+                        {
+                            <form asp-controller="Games" asp-action="Reserve" method="post" class="mt-auto">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="offerId" value="@o.Id" />
+                                <div class="input-group">
+                                    <input class="form-control bg-dark text-white border-warning"
+                                           type="number" name="quantity" value="1"
+                                           min="1" max="@o.Available" />
+                                    <button type="submit" class="btn btn-warning text-dark fw-bold">
+                                        Réserver
+                                    </button>
+                                </div>
+                                <div class="form-text text-secondary mt-1">
+                                    Connexion requise au moment de la réservation.
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary w-100" disabled>Complet</button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a class="btn btn-outline-warning" asp-controller="Home" asp-action="Index">⬅ Retour à l’accueil</a>
+    </div>
+</div>
