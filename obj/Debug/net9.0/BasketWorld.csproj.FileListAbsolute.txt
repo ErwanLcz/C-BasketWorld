@@ -215,7 +215,6 @@ C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\comp
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\nezrqnk58p-muycvpuwrr.gz
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\v0zgfp0y55-87fc7y1x7t.gz
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\yfc7ypekbg-mlv21k5csn.gz
-C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\x0gwir14eg-b9sayid5wm.gz
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\w9wvwpij8j-61n19gt1b8.gz
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\jckxox4ydw-xtxxf3hu2r.gz
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\5k6lnlf89w-bqjiyaj88i.gz
@@ -289,3 +288,4 @@ C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\refi
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\BasketWorld.pdb
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\BasketWorld.genruntimeconfig.cache
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\ref\BasketWorld.dll
+C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\x0gwir14eg-5sjbhthtl2.gz

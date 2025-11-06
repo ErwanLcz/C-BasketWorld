@@ -1,39 +1,105 @@
-@model List<Game>
+@model BasketWorld.Models.ViewModels.LeaguePageViewModel
 @{
-    ViewData["Title"] = ViewBag.LeagueName;
+    ViewData["Title"] = Model.LeagueName;
 }
 
-<h1 class="mb-4" style= "color: var(--orange)">@ViewBag.LeagueName</h1>
+<h1 class="mb-4" style="color: var(--orange)">@Model.LeagueName</h1>
 
-@if (!Model.Any())
+@if (Model.Teams?.Any() == true)
 {
-    <div class="text-muted">Aucun match pour cette ligue.</div>
+    <div class="logo-carousel-wrapper mb-5">
+        <button class="carousel-btn left" type="button" aria-label="Défiler vers la gauche">‹</button>
+
+        <div class="logo-carousel" id="logoCarousel">
+            @foreach (var team in Model.Teams)
+            {
+                <div class="logo-item" title="@team.Name">
+                    <img src="@(string.IsNullOrEmpty(team.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : team.LogoUrl)" alt="@team.Name" />
+                    <span>@team.Name</span>
+                </div>
+            }
+        </div>
+
+        <button class="carousel-btn right" type="button" aria-label="Défiler vers la droite">›</button>
+    </div>
 }
-else
+
+@if (Model.UpcomingGames.Any())
 {
-    <div class="row g-3">
-        @foreach (var g in Model)
+    <h2 class="h4 mb-3">Matchs à venir</h2>
+    <div class="games-list">
+        @foreach (var g in Model.UpcomingGames)
         {
-            <div class="col-md-4">
-                <div class="card bg-dark text-white border shadow-lg p-3 h-100 border-warning">
-                    <h5 class="card-title text-uppercase" style= "color: var(--orange)">@g.League.Name</h5>
-                    <div class="mb-2">
-                        <strong>@g.HomeTeam.Name</strong> 
-                        <span class="text-secondary">vs</span> 
-                        <strong>@g.AwayTeam.Name</strong>
+            <div class="game-card">
+                <div class="teams">
+                    <div class="team">
+                        <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
+                        <span>@g.HomeTeam?.Name</span>
                     </div>
-                    <div class="text-light">
-                        @g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.Venue
-                    </div>
-
-                    <div class="mt-3">
-                        <a class="btn btn-warning text-dark fw-bold w-100"
-                           asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
-                            Détails / Réserver
-                        </a>
+                    <strong class="vs">vs</strong>
+                    <div class="team">
+                        <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
+                        <span>@g.AwayTeam?.Name</span>
                     </div>
                 </div>
+                <div class="meta">
+                    <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
+                    @if (!string.IsNullOrWhiteSpace(g.Venue))
+                    {
+                        <span class="venue">— @g.Venue</span>
+                    }
+                </div>
+                <a class="btn-reserve" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Détails & Réserver</a>
             </div>
         }
     </div>
 }
+else
+{
+    <p>Aucun match à venir pour le moment.</p>
+}
+
+@if (Model.PastGames.Any())
+{
+    <h2 class="h4 mt-5 mb-3">Résultats récents</h2>
+    <div class="games-list past">
+        @foreach (var g in Model.PastGames)
+        {
+            <div class="game-card past">
+                <div class="teams">
+                    <div class="team">
+                        <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
+                        <span>@g.HomeTeam?.Name</span>
+                    </div>
+                    <strong class="vs">vs</strong>
+                    <div class="team">
+                        <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
+                        <span>@g.AwayTeam?.Name</span>
+                    </div>
+                </div>
+                <div class="meta">
+                    <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
+                    @if (g.HomeScore.HasValue && g.AwayScore.HasValue)
+                    {
+                        <span class="score">— @g.HomeScore : @g.AwayScore</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(g.Status))
+                    {
+                        <span class="status">(@g.Status)</span>
+                    }
+                </div>
+                <a class="btn-reserve secondary" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Voir le match</a>
+            </div>
+        }
+    </div>
+}
+
+<script>
+(function() {
+  const el = document.getElementById('logoCarousel');
+  if (!el) return;
+  const step = 5 * 132; // ~5 logos
+  document.querySelector('.carousel-btn.left')?.addEventListener('click', () => el.scrollBy({ left: -step, behavior: 'smooth' }));
+  document.querySelector('.carousel-btn.right')?.addEventListener('click', () => el.scrollBy({ left: step, behavior: 'smooth' }));
+})();
+</script>
