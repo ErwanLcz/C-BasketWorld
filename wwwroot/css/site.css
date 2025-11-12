@@ -324,3 +324,35 @@ h1.mb-4 {
   position: relative;
   z-index: 1;
 }
+
+/* Chip score pour les résultats récents */
+.final-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: rgba(17, 17, 17, 0.75);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.final-score .team-name {
+  opacity: 0.9;
+}
+.final-score .num {
+  font-weight: 800;
+}
+.final-score.home-win .home {
+  color: var(--orange);
+}
+.final-score.away-win .away {
+  color: var(--orange);
+}
+.final-score.draw .num {
+  color: #fff;
+}
+.final-score .status {
+  opacity: 0.85;
+  font-weight: 600;
+}

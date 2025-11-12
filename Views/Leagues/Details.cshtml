@@ -74,33 +74,46 @@ else
         @foreach (var g in Model.PastGames)
         {
             <div class="game-card"
-                    style="background-image:
-                            linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.55)),
-                            url('@HomeHero(g)');">
+                 style="background-image:
+                         linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.55)),
+                         url('@HomeHero(g)');">
                 <div class="bg-away" style="background-image:url('@AwayHero(g)')"></div>
 
                 <div class="teams">
                     <div class="team home">
-                    <span class="name">@g.HomeTeam?.Name</span>
-                    <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
+                        <span class="name">@g.HomeTeam?.Name</span>
+                        <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
                     </div>
+
                     <strong class="vs">vs</strong>
+
                     <div class="team away">
-                    <span class="name">@g.AwayTeam?.Name</span>
-                    <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
+                        <span class="name">@g.AwayTeam?.Name</span>
+                        <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
                     </div>
                 </div>
 
                 <div class="meta">
                     <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
-                    @if (!string.IsNullOrWhiteSpace(g.Venue)) { <span class="venue">— @g.Venue</span> }
+                    @* Chip score à la place du bouton *@
+                    @if (g.HomeScore.HasValue && g.AwayScore.HasValue)
+                    {
+                        var winClass = g.HomeScore > g.AwayScore ? "home-win" : g.HomeScore < g.AwayScore ? "away-win" : "draw";
+                        <span class="final-score @winClass">
+                            <span class="team-name">@g.HomeTeam?.Name</span>
+                            <strong class="num home">@g.HomeScore</strong>
+                            <span>–</span>
+                            <strong class="num away">@g.AwayScore</strong>
+                            <span class="status">@(string.IsNullOrWhiteSpace(g.Status) ? "Final" : g.Status)</span>
+                        </span>
+                    }
                 </div>
-
-                <a class="btn-reserve" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Détails & Réserver</a>
-                </div>
+                @* pas de bouton ici *@
+            </div>
         }
     </div>
 }
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
