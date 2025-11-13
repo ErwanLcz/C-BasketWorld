@@ -288,4 +288,4 @@ C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\refi
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\BasketWorld.pdb
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\BasketWorld.genruntimeconfig.cache
 C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\ref\BasketWorld.dll
-C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\x0gwir14eg-apzws4hcfa.gz
+C:\Users\erwan\Documents\IUT\3eme\R5.05\Projet\BasketWorld\obj\Debug\net9.0\compressed\x0gwir14eg-izy9amgtic.gz

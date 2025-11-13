@@ -3,6 +3,8 @@ using BasketWorld.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
 
 namespace BasketWorld.Controllers
 {
@@ -10,60 +12,117 @@ namespace BasketWorld.Controllers
     {
         private readonly ApplicationDbContext _ctx;
         public GamesController(ApplicationDbContext ctx) { _ctx = ctx; }
+        private static readonly TimeSpan EarlyAccessWindow = TimeSpan.FromMinutes(2); // optionnel
+
 
         public async Task<IActionResult> Details(int id)
         {
             var game = await _ctx.Games
-                .Include(g => g.League)
                 .Include(g => g.HomeTeam)
                 .Include(g => g.AwayTeam)
-                .Include(g => g.Offers).ThenInclude(o => o.SeatCategory)
+                .Include(g => g.League)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
-            return game == null ? NotFound() : View(game);
+            if (game == null) return NotFound();
+
+            var hasAccess = false;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                hasAccess = await _ctx.GameAccesses.AnyAsync(a => a.GameId == id && a.UserId == userId);
+            }
+
+            ViewBag.HasAccess = hasAccess;
+            ViewBag.CanWatchFromUtc = game.StartAt - EarlyAccessWindow;
+            return View(game);
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reserve(int offerId, int quantity)
+        public async Task<IActionResult> BuyAccess(int id)
         {
-            var offer = await _ctx.TicketOffers
-                .Include(o => o.Game)
-                .FirstOrDefaultAsync(o => o.Id == offerId);
+            var game = await _ctx.Games.FindAsync(id);
+            if (game == null) return NotFound();
 
-            if (offer == null || quantity <= 0)
-                return BadRequest("Offre invalide.");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var user = await _ctx.Users.FirstAsync(u => u.Id == userId);
 
-            if (offer.Available < quantity)
+            // déjà acheté ?
+            var already = await _ctx.GameAccesses.AnyAsync(a => a.GameId == id && a.UserId == userId);
+            if (already)
             {
-                TempData["err"] = "Plus assez de places disponibles.";
-                return RedirectToAction("Details", new { id = offer.GameId });
+                TempData["ok"] = "Vous avez déjà l’accès à ce match.";
+                return RedirectToAction(nameof(Watch), new { id });
             }
 
-            var userId = User.Claims.First(c => c.Type.EndsWith("nameidentifier")).Value;
-
-            var reservation = new Reservation
+            // assez de coins ?
+            if (user.Coins < 1)
             {
-                UserId = userId,
-                Status = "Pending",
-                TotalAmount = offer.Price * quantity,
-                Lines = new List<ReservationLine>
-                {
-                    new ReservationLine
-                    {
-                        TicketOfferId = offer.Id,
-                        Quantity = quantity,
-                        UnitPrice = offer.Price
-                    }
-                }
-            };
+                TempData["err"] = "Solde insuffisant (1 coin nécessaire).";
+                return RedirectToAction(nameof(Details), new { id });
+            }
 
-            _ctx.Reservations.Add(reservation);
+            user.Coins -= 1;
+            _ctx.GameAccesses.Add(new GameAccess { GameId = id, UserId = userId });
             await _ctx.SaveChangesAsync();
 
-            return RedirectToAction("Review", "Reservations", new { id = reservation.Id });
+            TempData["ok"] = "Accès accordé ! Bon match.";
+            return RedirectToAction(nameof(Watch), new { id });
         }
 
+        [Authorize]
+        public async Task<IActionResult> Watch(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var access = await _ctx.GameAccesses
+                .Include(a => a.Game)
+                    .ThenInclude(g => g.HomeTeam)
+                .Include(a => a.Game)
+                    .ThenInclude(g => g.AwayTeam)
+                .FirstOrDefaultAsync(a => a.GameId == id && a.UserId == userId);
+
+            if (access == null)
+            {
+                TempData["err"] = "Vous n’avez pas réservé ce match.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var game = access.Game;
+            var nowUtc = DateTime.UtcNow;
+
+            // Autoriser à partir de StartAt (avec fenêtre optionnelle)
+            var watchFromUtc = game.StartAt - EarlyAccessWindow;
+
+            if (nowUtc < watchFromUtc)
+            {
+                var localStart = game.StartAt.ToLocalTime();
+                TempData["err"] = $"La diffusion sera disponible le {localStart:dd/MM/yyyy HH:mm}.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            return View("Watch", game);
+        }
+        // GamesController.cs
+        [Authorize]
+        public async Task<IActionResult> Mine()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!; // <= au lieu de _userManager.GetUserId(User)
+            var games = await _ctx.GameAccesses
+                .Where(a => a.UserId == userId)
+                .Include(a => a.Game).ThenInclude(g => g.HomeTeam)
+                .Include(a => a.Game).ThenInclude(g => g.AwayTeam)
+                .Include(a => a.Game).ThenInclude(g => g.League)
+                .Select(a => a.Game)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var now = DateTime.UtcNow;
+            ViewBag.Upcoming = games.Where(g => g.StartAt > now).OrderBy(g => g.StartAt).ToList();
+            ViewBag.Past     = games.Where(g => g.StartAt <= now).OrderByDescending(g => g.StartAt).ToList();
+
+            return View("Mine");
+        }
     }
 }

@@ -1,6 +1,10 @@
+@* Views/Games/Details.cshtml *@
 @model Game
 @{
-    ViewData["Title"] = $"{Model.HomeTeam.Name} vs {Model.AwayTeam.Name}";
+    var hasAccess = (bool)(ViewBag.HasAccess ?? false);
+    var canWatchFromUtc = (DateTime)(ViewBag.CanWatchFromUtc ?? Model.StartAt);
+    var canWatchFromLocal = canWatchFromUtc.ToLocalTime();
+    bool canWatchNow = DateTime.UtcNow >= canWatchFromUtc;
 }
 
 <div class="card bg-dark text-white border border-warning shadow-lg p-4 mx-auto" style="max-width: 1000px;">
@@ -39,52 +43,67 @@
         </div>
     </div>
 
-    <hr class="border-warning opacity-50" />
+<hr class="border-warning opacity-50" />
 
-    <h3 class="mb-3" style= "color: var(--orange)">Catégories & tarifs</h3>
-
-    @if (Model.Offers == null || !Model.Offers.Any())
+@if (!User.Identity.IsAuthenticated)
+{
+    <div class="alert alert-info">Connecte-toi pour réserver ce match (1 coin).</div>
+    <a class="btn btn-warning" asp-area="" asp-controller="Account" asp-action="Login">Se connecter</a>
+}
+else if (!hasAccess)
+{
+    <form method="post" asp-action="BuyAccess" asp-route-id="@Model.Id">
+        <button class="btn btn-warning">🎟️ Réserver ma place (1 coin)</button>
+    </form>
+    <div class="text-secondary mt-2">
+        Diffusion à partir du @Model.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+    </div>
+}
+else
+{
+    if (canWatchNow)
     {
-        <div class="text-muted">Aucune offre pour ce match.</div>
+        <div class="alert alert-success">Réservation confirmée ✔ La diffusion est disponible.</div>
+        <a class="btn btn-success" asp-action="Watch" asp-route-id="@Model.Id">Regarder le match</a>
     }
     else
     {
-        <div class="row g-3">
-            @foreach (var o in Model.Offers.OrderBy(x => x.Price))
-            {
-                <div class="col-md-4">
-                    <div class="card bg-dark text-white border border-warning h-100 p-3">
-                        <h5 class="card-title" style= "color: var(--orange)">@o.SeatCategory.Name</h5>
-                        <p class="mb-1">Prix : <strong>@o.Price €</strong></p>
-                        <p class="mb-3">Disponibles : @o.Available</p>
+        <div class="alert alert-success">Réservation confirmée ✔</div>
+        <div class="text-secondary">La diffusion ouvrira le @canWatchFromLocal.ToString("dd/MM/yyyy HH:mm").</div>
 
-                        @if (o.Available > 0)
-                        {
-                            <form asp-controller="Games" asp-action="Reserve" method="post" class="mt-auto">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="offerId" value="@o.Id" />
-                                <div class="input-group">
-                                    <input class="form-control bg-dark text-white border-warning"
-                                           type="number" name="quantity" value="1"
-                                           min="1" max="@o.Available" />
-                                    <button type="submit" class="btn btn-warning text-dark fw-bold">
-                                        Réserver
-                                    </button>
-                                </div>
-                                <div class="form-text text-secondary mt-1">
-                                    Connexion requise au moment de la réservation.
-                                </div>
-                            </form>
-                        }
-                        else
-                        {
-                            <button class="btn btn-secondary w-100" disabled>Complet</button>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
+        <button id="watchBtn" class="btn btn-success mt-2" disabled>Regarder le match</button>
+
+        <div id="countdown" class="text-warning mt-2 fw-bold"></div>
+
+        <script>
+            (function(){
+              const target = new Date('@canWatchFromLocal.ToString("yyyy-MM-ddTHH:mm:ss")');
+              const btn = document.getElementById('watchBtn');
+              const cd = document.getElementById('countdown');
+
+              function tick(){
+                const now = new Date();
+                const diff = target - now;
+                if (diff <= 0){
+                  btn.disabled = false;
+                  btn.onclick = () => { window.location = '@Url.Action("Watch","Games", new { id = Model.Id })'; };
+                  cd.textContent = "C'est parti !";
+                  clearInterval(intv);
+                } else {
+                  const s = Math.floor(diff/1000)%60;
+                  const m = Math.floor(diff/60000)%60;
+                  const h = Math.floor(diff/3600000);
+                  cd.textContent = `Disponible dans ${h}h ${m}m ${s}s`;
+                }
+              }
+              tick();
+              const intv = setInterval(tick, 1000);
+            })();
+        </script>
     }
+}
+
+
 
     <div class="text-center mt-4">
         <a class="btn btn-outline-warning" asp-controller="Home" asp-action="Index">⬅ Retour à l’accueil</a>

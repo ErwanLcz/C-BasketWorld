@@ -8,8 +8,9 @@ namespace BasketWorld.Services
     {
         private readonly ApplicationDbContext _ctx;
         private readonly BalldontlieClient _api;
-        private List<BlTeam>? _blTeamsCache;
 
+        // Petit cache des équipes BL pour éviter des appels répétitifs
+        private List<BlTeam>? _blTeamsCache;
 
         public NbaSyncService(ApplicationDbContext ctx, BalldontlieClient api)
         {
@@ -17,111 +18,177 @@ namespace BasketWorld.Services
             _api = api;
         }
 
-        public async Task<int> SyncAsync(DateTime fromUtc, DateTime toUtc)
+        /// <summary>
+        /// Sync global (équipes puis matchs) sur une fenêtre UTC.
+        /// Retourne (teamsUpserts, gamesUpserts).
+        /// </summary>
+        public async Task<(int teams, int games)> SyncAsync(DateTime fromUtc, DateTime toUtc)
         {
-            // 1) Assure la ligue NBA
+            if (fromUtc.Kind != DateTimeKind.Utc || toUtc.Kind != DateTimeKind.Utc)
+                throw new ArgumentException("fromUtc/toUtc doivent être en UTC.");
+
+            var teams = await SyncTeamsAsync();
+            var games = await SyncGamesAsync(fromUtc, toUtc);
+            return (teams, games);
+        }
+
+        /// <summary>
+        /// Assure l’existence de la ligue "NBA" (clé = Name).
+        /// </summary>
+        private async Task<League> GetOrCreateNbaAsync()
+        {
             var nba = await _ctx.Leagues.FirstOrDefaultAsync(l => l.Name == "NBA");
-            if (nba == null)
-            {
-                nba = new League { Name = "NBA" };
-                _ctx.Leagues.Add(nba);
-                await _ctx.SaveChangesAsync();
-            }
+            if (nba != null) return nba;
 
-            // 2) Upsert Teams
-            // Simple cache mémoire par exécution
-            if (_blTeamsCache == null) _blTeamsCache = await _api.GetTeamsAsync();
-            var blTeams = _blTeamsCache;
+            nba = new League { Name = "NBA" };
+            _ctx.Leagues.Add(nba);
+            await _ctx.SaveChangesAsync();
+            return nba;
+        }
 
-            // NE GARDER que celles qui ont un ExternalId pour le dico par id externe
+        /// <summary>
+        /// Récupère (et met en cache) la liste des équipes balldontlie.
+        /// </summary>
+        private async Task<List<BlTeam>> GetBlTeamsAsync()
+        {
+            if (_blTeamsCache != null) return _blTeamsCache;
+            _blTeamsCache = await _api.GetTeamsAsync();
+            return _blTeamsCache;
+        }
+
+        /// <summary>
+        /// Upsert des équipes NBA.
+        /// </summary>
+        public async Task<int> SyncTeamsAsync()
+        {
+            var nba = await GetOrCreateNbaAsync();
+            var blTeams = await GetBlTeamsAsync();
+
             var teamsByExt = await _ctx.Teams
                 .Where(t => t.LeagueId == nba.Id && t.ExternalId != null)
                 .ToDictionaryAsync(t => t.ExternalId!.Value);
 
-            // Dico par nom (insensible à la casse)
-            var teamsByNameList = await _ctx.Teams
-                .Where(t => t.LeagueId == nba.Id)
-                .ToListAsync();
-
-            var teamsByName = teamsByNameList
+            var teamsByName = (await _ctx.Teams
+                    .Where(t => t.LeagueId == nba.Id)
+                    .ToListAsync())
                 .GroupBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
+            var upserts = 0;
+
             foreach (var bt in blTeams)
             {
-                Team team;
-                if (teamsByExt.TryGetValue(bt.Id, out team!))
+                if (teamsByExt.TryGetValue(bt.Id, out var tByExt))
                 {
-                    // update
-                    team.Name = bt.Name; // "Lakers"
-                    team.Abbreviation = bt.Abbreviation; // "LAL"
+                    tByExt.Name = bt.Name;
+                    tByExt.Abbreviation = bt.Abbreviation;
+                    _ctx.Teams.Update(tByExt);
+                    upserts++;
                 }
-                else if (teamsByName.TryGetValue(bt.Name, out team!))
+                else if (teamsByName.TryGetValue(bt.Name, out var tByName))
                 {
-                    // link external id
-                    team.ExternalId = bt.Id;
-                    team.Abbreviation = bt.Abbreviation;
+                    tByName.ExternalId = bt.Id;
+                    tByName.Abbreviation = bt.Abbreviation;
+                    _ctx.Teams.Update(tByName);
+                    upserts++;
                 }
                 else
                 {
-                    team = new Team
+                    var created = new Team
                     {
                         League = nba,
                         Name = bt.Name,
-                        ExternalId = bt.Id,
                         Abbreviation = bt.Abbreviation,
-                        // LogoUrl: tu peux mapper une table de correspondance ici si tu veux
+                        ExternalId = bt.Id
                     };
-                    _ctx.Teams.Add(team);
+                    _ctx.Teams.Add(created);
+                    upserts++;
                 }
             }
+
             await _ctx.SaveChangesAsync();
+            return upserts;
+        }
 
-            // Reconstitue un dico (après insert)
-            var byExt = await _ctx.Teams.Where(t => t.LeagueId == nba.Id && t.ExternalId != null)
-                                        .ToDictionaryAsync(t => t.ExternalId!.Value);
+        /// <summary>
+        /// Upsert des matchs sur une fenêtre temporelle UTC.
+        /// </summary>
+        public async Task<int> SyncGamesAsync(DateTime fromUtc, DateTime toUtc)
+        {
+            var nba = await GetOrCreateNbaAsync();
+            var blTeams = await GetBlTeamsAsync();
 
-            // 3) Upsert Games (fenêtre from..to)
+            var teamsByExt = await _ctx.Teams
+                .Where(t => t.LeagueId == nba.Id && t.ExternalId != null)
+                .ToDictionaryAsync(t => t.ExternalId!.Value);
+
             var blGames = await _api.GetGamesByDateRangeAsync(fromUtc, toUtc);
-            System.Diagnostics.Debug.WriteLine($"[NBA SYNC] API returned {blGames.Count} games for {fromUtc:yyyy-MM-dd} -> {toUtc:yyyy-MM-dd}");
-            int upserts = 0;
+
+            var upserts = 0;
 
             foreach (var g in blGames)
             {
-                if (!byExt.TryGetValue(g.Home_team.Id, out var home) || !byExt.TryGetValue(g.Visitor_team.Id, out var away))
-                    continue; // sécurité
+                // Associer les équipes
+                if (!teamsByExt.TryGetValue(g.Home_team.Id, out var home) ||
+                    !teamsByExt.TryGetValue(g.Visitor_team.Id, out var away))
+                {
+                    // Si on n'a pas encore mappé l'équipe, on saute ce match (ou on pourrait forcer un resync teams).
+                    continue;
+                }
+
+                var status = (g.Status ?? string.Empty).Trim();
+                // balldontlie utilise "Final", "Final/OT", etc. -> on détecte la présence de "Final"
+                bool isFinal = status.IndexOf("final", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                // ➜ RÈGLE SCORE :
+                // - Final -> on persiste tel quel
+                // - Non-final mais (home>0 || away>0) -> on persiste (match en cours)
+                // - 0–0 non-final -> null (éviter d'afficher un faux 0–0 pour un match à venir)
+                int? mappedHome = (isFinal || g.Home_team_score > 0 || g.Visitor_team_score > 0) ? g.Home_team_score : (int?)null;
+                int? mappedAway = (isFinal || g.Home_team_score > 0 || g.Visitor_team_score > 0) ? g.Visitor_team_score : (int?)null;
+
+                var startAtUtc = DateTime.SpecifyKind(g.Date, DateTimeKind.Utc);
 
                 var existing = await _ctx.Games
                     .FirstOrDefaultAsync(x => x.Source == "balldontlie" && x.ExternalId == g.Id);
 
                 if (existing == null)
                 {
-                    existing = new Game
+                    var game = new Game
                     {
                         League = nba,
                         HomeTeam = home,
                         AwayTeam = away,
-                        StartAt = g.Date,         // g.Date est UTC
-                        Venue = "",               // balldontlie n’a pas le stade; laisse vide
+
+                        StartAt = startAtUtc,
+                        Venue = "", // pas d'info d'arène dispo -> vide (non-nullable)
+
                         ExternalId = g.Id,
                         Source = "balldontlie",
                         Season = g.Season,
-                        Status = g.Status,
-                        HomeScore = g.Home_team_score == 0 ? null : g.Home_team_score,
-                        AwayScore = g.Visitor_team_score == 0 ? null : g.Visitor_team_score
+                        Status = status,
+
+                        HomeScore = mappedHome,
+                        AwayScore = mappedAway
                     };
-                    _ctx.Games.Add(existing);
+
+                    _ctx.Games.Add(game);
                     upserts++;
                 }
                 else
                 {
                     existing.HomeTeamId = home.Id;
                     existing.AwayTeamId = away.Id;
-                    existing.StartAt = g.Date;
+
+                    existing.StartAt = startAtUtc;
+                    if (existing.Venue == null) existing.Venue = "";
+
                     existing.Season = g.Season;
-                    existing.Status = g.Status;
-                    existing.HomeScore = g.Home_team_score == 0 ? null : g.Home_team_score;
-                    existing.AwayScore = g.Visitor_team_score == 0 ? null : g.Visitor_team_score;
+                    existing.Status = status;
+
+                    existing.HomeScore = mappedHome;
+                    existing.AwayScore = mappedAway;
+
                     _ctx.Games.Update(existing);
                     upserts++;
                 }

@@ -41,17 +41,22 @@ namespace BasketWorld.Controllers
                 .OrderBy(t => t.Name)
                 .ToList();
 
+            var todayUtc = DateTime.UtcNow.Date; // ex: 2025-11-12 00:00:00
+            var tomorrowUtc = todayUtc.AddDays(1);
+
             var vm = new LeaguePageViewModel
             {
                 LeagueName = league.Name,
                 Teams = teamsThatActuallyPlay,
-                UpcomingGames = games.Where(g => g.StartAt >= nowUtc)
-                                    .OrderBy(g => g.StartAt)
-                                    .ToList(),
-                PastGames = games.Where(g => g.StartAt < nowUtc)
-                                .OrderByDescending(g => g.StartAt)
-                                .Take(30)
-                                .ToList()
+                UpcomingGames = games
+                    .Where(g => g.StartAt >= todayUtc) // on garde tout à partir d'aujourd'hui
+                    .OrderBy(g => g.StartAt)
+                    .ToList(),
+                PastGames = games
+                    .Where(g => g.StartAt < todayUtc)
+                    .OrderByDescending(g => g.StartAt)
+                    .Take(30)
+                    .ToList()
             };
 
             return View("Details", vm);

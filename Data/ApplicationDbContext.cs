@@ -15,6 +15,7 @@ namespace BasketWorld.Data
         public DbSet<TicketOffer> TicketOffers => Set<TicketOffer>();
         public DbSet<Reservation> Reservations => Set<Reservation>();
         public DbSet<ReservationLine> ReservationLines => Set<ReservationLine>();
+        public DbSet<GameAccess> GameAccesses => Set<GameAccess>();
 
         protected override void OnModelCreating(ModelBuilder b)
         {
@@ -32,6 +33,10 @@ namespace BasketWorld.Data
 
             b.Entity<TicketOffer>()
                 .HasIndex(o => new { o.GameId, o.SeatCategoryId })
+                .IsUnique();
+            
+            b.Entity<GameAccess>()
+                .HasIndex(x => new { x.UserId, x.GameId })
                 .IsUnique();
         }
     }

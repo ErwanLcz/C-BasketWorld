@@ -49,24 +49,6 @@ namespace BasketWorld.Areas.Admin.Controllers
 
             _ctx.Games.Add(game);
             await _ctx.SaveChangesAsync();
-
-            // créer les offres
-            foreach (var o in vm.Offers)
-            {
-                // ignorer lignes vides (si SeatCategoryId 0)
-                if (o.SeatCategoryId <= 0) continue;
-
-                _ctx.TicketOffers.Add(new TicketOffer
-                {
-                    GameId = game.Id,
-                    SeatCategoryId = o.SeatCategoryId,
-                    Price = o.Price,
-                    Quota = o.Quota,
-                    Sold = 0
-                });
-            }
-            await _ctx.SaveChangesAsync();
-
             TempData["ok"] = "Match créé avec succès.";
             return RedirectToAction("Create");
         }

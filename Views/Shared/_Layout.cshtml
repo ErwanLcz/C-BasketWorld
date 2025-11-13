@@ -11,13 +11,14 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         :root {
+            --white : #ffffff;
             --orange: #ff8c00;
-            --bg: #121212;
+            --bg: #343434;
             --card: #1e1e1e;
         }
-        body { background: var(--bg); color: #fff; }
+        body { background: var(--bg); color: var(--white); }
         .navbar { background: #000; }
-        .navbar .nav-link, .navbar-brand { color: var(--orange) !important; font-weight: 600; }
+        .navbar .nav-link, .navbar-brand { color: var(--white) !important; font-weight: 600; }
         .card { background: var(--card); border: 1px solid var(--orange); }
         .btn-primary, .btn-success, .btn-warning { background: var(--orange); border-color: var(--orange); color:#000; }
         .btn-outline-light { border-color:#fff; color:#fff; }
@@ -30,6 +31,7 @@
 <body>
 <nav class="navbar navbar-expand-lg mb-4">
   <div class="container">
+    <img src="images/logo.png" alt="BasketWorld Logo" style="height:60px; margin-right:10px;">
     <a class="navbar-brand" asp-controller="Home" asp-action="Index">BasketWorld</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
       <span class="navbar-toggler-icon"></span>
@@ -43,7 +45,9 @@
       <ul class="navbar-nav">
         @if (SignInManager.IsSignedIn(User))
         {
-            <li class="nav-item me-2"><a class="nav-link" asp-controller="Reservations" asp-action="Mine">Mes billets</a></li>
+            var me = await UserManager.GetUserAsync(User);
+            <li class="nav-item"><span class="navbar-text me-3">💰 @me?.Coins coin(s)</span></li>
+            <li class="nav-item"><a class="nav-link" asp-controller="Games" asp-action="Mine">Mes matchs</a></li>
             <li class="nav-item">
                 <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-light btn-sm">Se déconnecter</button>

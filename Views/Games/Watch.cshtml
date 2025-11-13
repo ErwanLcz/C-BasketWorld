@@ -1,0 +1,36 @@
+@model Game
+@{
+    ViewData["Title"] = "Regarder le match";
+    string ytb = "https://www.youtube.com/watch?v=l-8CKcAuSt8";
+    // normaliser vers un embed si l’admin met une URL "watch?v=..."
+    string embed = ytb;
+    if (ytb.Contains("watch?v="))
+    {
+        var id = ytb.Split("watch?v=").Last().Split("&")[0];
+        embed = $"https://www.youtube.com/embed/{id}";
+    }
+}
+
+<div class="card bg-dark text-white border border-warning p-3">
+    <h2 class="mb-3" style="color:var(--orange)">
+        @Model.HomeTeam.Name <span class="text-secondary">vs</span> @Model.AwayTeam.Name
+    </h2>
+
+    @if (string.IsNullOrWhiteSpace(embed))
+    {
+        <div class="alert alert-warning">
+            La vidéo n’est pas encore configurée. Réessaye plus tard.
+        </div>
+    }
+    else
+    {
+        <div class="ratio ratio-16x9">
+            <iframe src="@embed" title="YouTube video"
+                    frameborder="0" allowfullscreen></iframe>
+        </div>
+    }
+
+    <div class="mt-3">
+        <a class="btn btn-outline-warning" asp-action="Details" asp-route-id="@Model.Id">⬅ Retour au match</a>
+    </div>
+</div>

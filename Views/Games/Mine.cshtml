@@ -1,0 +1,53 @@
+@* Views/Games/Mine.cshtml *@
+@{
+    var upcoming = (IEnumerable<Game>)(ViewBag.Upcoming ?? Enumerable.Empty<Game>());
+    var past = (IEnumerable<Game>)(ViewBag.Past ?? Enumerable.Empty<Game>());
+}
+<h1 class="mb-3">Mes matchs</h1>
+
+<h3 class="mt-4">À venir</h3>
+@if (!upcoming.Any())
+{
+    <div class="text-muted">Aucun match réservé à venir.</div>
+}
+else
+{
+    <div class="row g-3">
+    @foreach (var g in upcoming)
+    {
+        <div class="col-md-6">
+          <div class="card bg-dark text-white border border-warning p-3 h-100">
+            <div><strong>@g.HomeTeam.Name</strong> <span class="text-secondary">vs</span> <strong>@g.AwayTeam.Name</strong></div>
+            <div class="text-secondary">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.League.Name</div>
+            <div class="mt-2">
+              <a class="btn btn-outline-success disabled" aria-disabled="true">Regarder (bientôt)</a>
+              <a class="btn btn-sm btn-secondary ms-2" asp-action="Details" asp-route-id="@g.Id">Détails</a>
+            </div>
+          </div>
+        </div>
+    }
+    </div>
+}
+
+<h3 class="mt-4">Déjà diffusés</h3>
+@if (!past.Any())
+{
+    <div class="text-muted">Aucun match passé.</div>
+}
+else
+{
+    <div class="row g-3">
+    @foreach (var g in past)
+    {
+        <div class="col-md-6">
+          <div class="card bg-dark text-white border border-warning p-3 h-100">
+            <div><strong>@g.HomeTeam.Name</strong> <span class="text-secondary">vs</span> <strong>@g.AwayTeam.Name</strong></div>
+            <div class="text-secondary">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.League.Name</div>
+            <div class="mt-2">
+              <a class="btn btn-sm btn-success" asp-action="Watch" asp-route-id="@g.Id">Regarder</a>
+            </div>
+          </div>
+        </div>
+    }
+    </div>
+}

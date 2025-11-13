@@ -19,53 +19,60 @@ namespace BasketWorld.Areas.Admin.Controllers
             _ctx = ctx;
         }
 
-        // mode = "exact" (par défaut) => tente uniquement la fenêtre past/next
-        // mode = "expand" => essaie plusieurs fenêtres successives et additionne les upserts
-        public async Task<IActionResult> SyncNba(int past = 2, int next = 5, string mode = "exact", int minMatches = 1)
+        /// <summary>
+        /// Lance une synchronisation NBA.
+        /// mode = "exact" (par défaut) : une seule fenêtre past/next
+        /// mode = "expand" : essaie plusieurs fenêtres successives (pour obtenir des matchs "Final")
+        /// </summary>
+        public async Task<IActionResult> SyncNba(int past = 2, int next = 5, string mode = "exact", int minUpserts = 1)
         {
             try
             {
-                var attempts = new List<(int past, int next, string label)>();
+                var totalTeams = 0;
+                var totalGames = 0;
 
+                // Définit les fenêtres à essayer
+                var windows = new List<(int past, int next, string label)>();
                 if (string.Equals(mode, "expand", StringComparison.OrdinalIgnoreCase))
                 {
-                    attempts.Add((past, next, $"({past}j / +{next}j)"));
-                    attempts.Add((30, 7, "(30j / +7j)"));
-                    attempts.Add((120, 0, "(120j passés)"));
-                    attempts.Add((365, 0, "(365j passés)"));
+                    windows.Add((past, next, $"({past}j / +{next}j)"));
+                    windows.Add((30, 7, "(30j / +7j)"));
+                    windows.Add((120, 0, "(120j passés)"));
+                    windows.Add((365, 0, "(365j passés)"));
                 }
                 else
                 {
-                    attempts.Add((past, next, $"({past}j / +{next}j)"));
+                    windows.Add((past, next, $"({past}j / +{next}j)"));
                 }
 
-                var totalUpserts = 0;
-                string usedWindows = "";
+                string used = "";
 
-                foreach (var a in attempts)
+                foreach (var w in windows)
                 {
-                    var from = DateTime.UtcNow.Date.AddDays(-a.past);
-                    var to   = DateTime.UtcNow.Date.AddDays(+a.next);
+                    var from = DateTime.UtcNow.Date.AddDays(-w.past);
+                    var to   = DateTime.UtcNow.Date.AddDays(+w.next);
 
-                    var count = await _sync.SyncAsync(from, to);
-                    totalUpserts += count;
+                    var (t, g) = await _sync.SyncAsync(from, to);
+                    totalTeams += t;
+                    totalGames += g;
+                    used += (used.Length == 0 ? "" : " → ") + w.label;
 
-                    usedWindows += (usedWindows.Length == 0 ? "" : " → ") + a.label;
-
-                    // si mode=expand et on veut juste garantir ≥ minMatches,
-                    // on peut s'arrêter dès qu'on a atteint le quota
-                    if (string.Equals(mode, "expand", StringComparison.OrdinalIgnoreCase) && totalUpserts >= minMatches)
+                    if (string.Equals(mode, "expand", StringComparison.OrdinalIgnoreCase)
+                        && (t + g) >= minUpserts)
+                    {
                         break;
+                    }
 
-                    await Task.Delay(250); // respect du rate limit
+                    await Task.Delay(200); // petite pause pour la rate limit
                 }
 
-                TempData["msg"] = $"Sync NBA OK — upserts: {totalUpserts}. Fenêtres: {usedWindows}.";
+                TempData["msg"] = $"Sync OK. Teams upserts: {totalTeams}, Games upserts: {totalGames}. Fenêtres: {used}.";
             }
             catch (Exception ex)
             {
                 TempData["err"] = "Échec sync NBA : " + ex.Message;
             }
+
             return RedirectToAction("Index");
         }
 

@@ -81,7 +81,7 @@ namespace BasketWorld.Data
                     ["Hornets"] = "/images/team-bg/hornets.png",
                     ["Bulls"] = "/images/team-bg/bulls.png",
                     ["Cavaliers"] = "/images/team-bg/cavaliers.png",
-                    ["Mavericks"] = "/images/team-bg/maverick.png",
+                    ["Mavericks"] = "/images/team-bg/mavs.png",
                     ["Nuggets"] = "/images/team-bg/nuggets.png",
                     ["Pistons"] = "/images/team-bg/pistons.png",
                     ["Warriors"] = "/images/team-bg/warriors.png",
@@ -144,7 +144,8 @@ namespace BasketWorld.Data
                 {
                     UserName = "admin@basket.test",
                     Email = "admin@basket.test",
-                    FullName = "Admin"
+                    FullName = "Admin",
+                    Coins = 100
                 };
                 await userMgr.CreateAsync(admin, "Admin123!");
                 await userMgr.AddToRolesAsync(admin, new[] { "admin", "user" });
