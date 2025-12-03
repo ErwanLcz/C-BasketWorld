@@ -7,7 +7,7 @@
     string AwayHero(dynamic g) => g?.AwayTeam?.HeroImageUrl ?? Url.Content("~/images/team-bg/default-away.png");
 }
 
-<h1 class="mb-4" style="color: var(--orange)">@Model.LeagueName</h1>
+<!--<h1 class="mb-4" style="color: var(--orange)">@Model.LeagueName</h1>-->
 
 @if (Model.Teams?.Any() == true)
 {
@@ -17,7 +17,9 @@
         <div class="logo-carousel" id="logoCarousel">
             @foreach (var team in Model.Teams)
             {
-                <div class="logo-item" title="@team.Name">
+                <div class="logo-item" title="@team.Name"
+                        data-team-id="@team.Id"
+                        data-team-name="@team.Name">
                     <img src="@(string.IsNullOrEmpty(team.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : team.LogoUrl)" alt="@team.Name" />
                     <span>@team.Name</span>
                 </div>
@@ -25,6 +27,12 @@
         </div>
 
         <button class="carousel-btn right" type="button" aria-label="Défiler vers la droite">›</button>
+    </div>
+    <div id="teamFilterBar" class="mb-3" style="display:none">
+        <span class="filter-badge">
+            Équipe sélectionnée : <strong id="teamFilterName"></strong>
+            <button id="clearTeamFilter" class="btn btn-sm btn-warning" type="button">Réinitialiser</button>
+        </span>
     </div>
 }
 
@@ -35,6 +43,8 @@
         @foreach (var g in Model.UpcomingGames)
         {
             <div class="game-card"
+                data-home-id="@g.HomeTeamId"
+                data-away-id="@g.AwayTeamId"
                 style="background-image:
                         linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.55)),
                         url('@HomeHero(g)');">
@@ -74,6 +84,8 @@ else
         @foreach (var g in Model.PastGames)
         {
             <div class="game-card"
+                data-home-id="@g.HomeTeamId"
+                data-away-id="@g.AwayTeamId"
                  style="background-image:
                          linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.55)),
                          url('@HomeHero(g)');">
@@ -143,4 +155,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateArrows();
 });
+document.addEventListener('DOMContentLoaded', () => {
+  // --- Sélecteurs utiles
+  const logoWrap = document.querySelector('.logo-carousel');
+  const filterBar = document.getElementById('teamFilterBar');
+  const filterName = document.getElementById('teamFilterName');
+  const clearBtn = document.getElementById('clearTeamFilter');
+
+  if (!logoWrap) return;
+
+  // Toutes les cartes match (à venir + passés)
+  const gameCards = Array.from(document.querySelectorAll('.games-list .game-card'));
+
+  // Applique un filtre par teamId (number or string)
+  function applyFilter(teamId, teamLabel) {
+    // Visuel: logo actif
+    logoWrap.querySelectorAll('.logo-item').forEach(li => {
+      li.classList.toggle('active', li.dataset.teamId === String(teamId));
+    });
+
+    // Affiche la barre d’état
+    filterBar.style.display = 'inline-block';
+    filterName.textContent = teamLabel || '';
+
+    // Hi-lite les matchs qui concernent l’équipe ; dimmer les autres
+    gameCards.forEach(card => {
+      const home = card.dataset.homeId;
+      const away = card.dataset.awayId;
+      const isTeamGame = (home === String(teamId) || away === String(teamId));
+      card.classList.toggle('highlight', isTeamGame);
+      card.classList.toggle('dimmed', !isTeamGame);
+    });
+
+    // Pour pouvoir deep-linker, on push l’état dans l’URL sans reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('teamId', teamId);
+    window.history.replaceState({}, '', url);
+  }
+
+  // Enlever tout filtre
+  function clearFilter() {
+    logoWrap.querySelectorAll('.logo-item').forEach(li => li.classList.remove('active'));
+    filterBar.style.display = 'none';
+    gameCards.forEach(card => {
+      card.classList.remove('highlight', 'dimmed');
+    });
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('teamId');
+    window.history.replaceState({}, '', url);
+  }
+
+  // Clic sur un logo
+  logoWrap.addEventListener('click', (e) => {
+    const li = e.target.closest('.logo-item');
+    if (!li) return;
+
+    const id = li.dataset.teamId;
+    const name = li.dataset.teamName;
+
+    // toggle si on clique à nouveau sur le même logo
+    if (li.classList.contains('active')) {
+      clearFilter();
+    } else {
+      applyFilter(id, name);
+    }
+  });
+
+  clearBtn?.addEventListener('click', clearFilter);
+
+  // Si l’URL contient déjà teamId (partage / retour), on réapplique
+  const init = new URL(window.location.href).searchParams.get('teamId');
+  if (init) {
+    const initLogo = logoWrap.querySelector(`.logo-item[data-team-id="${init}"]`);
+    const initName = initLogo?.dataset.teamName || '';
+    applyFilter(init, initName);
+  }
+});
 </script>
+<style>
+  .game-card.dimmed { opacity: .25; filter: grayscale(40%); }
+  .game-card.highlight { outline: 2px solid var(--orange); box-shadow: 0 0 0 3px rgba(255,140,0,.3); }
+  .logo-item.active { transform: scale(1.06); outline: 2px solid var(--orange); border-radius: 8px; }
+  .filter-badge { display:inline-flex; gap:.5rem; align-items:center; padding:.35rem .6rem; background: var(--card); border:1px solid var(--orange); border-radius:999px; }
+</style>

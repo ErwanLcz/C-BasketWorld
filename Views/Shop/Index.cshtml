@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Boutique";
+}
+
+<h1 class="mb-4 text-warning">🛒 Boutique de Coins</h1>
+
+@if (TempData["ok"] != null)
+{
+    <div class="alert alert-success">@TempData["ok"]</div>
+}
+@if (TempData["err"] != null)
+{
+    <div class="alert alert-danger">@TempData["err"]</div>
+}
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <h4>Pack Débutant</h4>
+            <p class="text-secondary">10 coins</p>
+            <form method="post" asp-action="Buy">
+                <input type="hidden" name="amount" value="10" />
+                <button type="submit" class="btn btn-warning">Acheter 10 coins</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <h4>Pack Fan</h4>
+            <p class="text-secondary">50 coins</p>
+            <form method="post" asp-action="Buy">
+                <input type="hidden" name="amount" value="50" />
+                <button type="submit" class="btn btn-warning">Acheter 50 coins</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <h4>Pack Pro</h4>
+            <p class="text-secondary">100 coins</p>
+            <form method="post" asp-action="Buy">
+                <input type="hidden" name="amount" value="100" />
+                <button type="submit" class="btn btn-warning">Acheter 100 coins</button>
+            </form>
+        </div>
+    </div>
+</div>
