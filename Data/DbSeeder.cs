@@ -52,29 +52,31 @@ namespace BasketWorld.Data
                     ["Jazz"] = "/images/logos/jazz.png",
 
                     // EuroLeague (alignés avec tes fichiers)
-                    ["Anadolu Efes Istanbul"] = "/images/logos/istanbul.png",
-                    ["Monaco"] = "/images/logos/monaco.png",
-                    ["Victoria"] = "/images/logos/victoria.png",
+                    ["ANADOLU EFES ISTANBUL"] = "/images/logos/anadolu.png",
+                    ["AS MONACO"] = "/images/logos/monaco.png",
+                    ["KOSNER BASKONIA VITORIA-GASTEIZ"] = "/images/logos/Saski_Baskonia.png",
+                    ["FC BAYERN MUNICH"] = "/images/logos/bayern.png",
+                    ["ZALGIRIS KAUNAS"] = "/images/logos/zalgiris.png",
+                    ["FC BARCELONA"] = "/images/logos/FC_Barcelona.png",
+                    ["Dubai Basketball"] = "/images/logos/Dubai_BC_Logo.png",
+                    ["FENERBAHCE BEKO ISTANBUL"] = "/images/logos/Fenerbahçe.png",
+                    ["HAPOEL IBI TEL AVIV"] = "/images/logos/Hapoel.png",
+                    ["PARTIZAN MOZZART BET BELGRADE"] = "/images/logos/partizan.png",
+                    ["LDLC ASVEL VILLEURBANNE"] = "/images/logos/ldlc-asvel-lyon-villeurbanne.png",
+                    ["MACCABI RAPYD TEL AVIV"] = "/images/logos/Maccabi.png",
+                    ["EA7 EMPORIO ARMANI MILAN"] = "/images/logos/milan.png",
+                    ["OLYMPIACOS PIRAEUS"] = "/images/logos/Olympiacos.png",
+                    ["PANATHINAIKOS AKTOR ATHENS"] = "/images/logos/panathinaikos.png",
+                    ["CRVENA ZVEZDA MERIDIANBET BELGRADE"] = "/images/logos/KK_Crvena_zvezda_logo.png",
+                    ["Paris Basketball"] = "/images/logos/paris.png",
+                    ["REAL MADRID"] = "/images/logos/Logo_Real_Madrid.png",
+                    ["Valencia Basket"] = "/images/logos/valencia.png",
+                    ["VIRTUS BOLOGNA"] = "/images/logos/Virtus_Bologna.png",
                     ["Meridians"] = "/images/logos/meridians.png",
-                    ["Dubai"] = "/images/logos/dubai.png",
-                    ["Emporio"] = "/images/logos/emporio.png",
-                    ["Barcelona"] = "/images/logos/barcelona.png",
-                    ["Bayern Munich"] = "/images/logos/bayernm.png",
-                    ["Fenerbahce Beko"] = "/images/logos/fenerbahce.png",
-                    ["Hapoel Jerusalem"] = "/images/logos/jerusalem.png",
-                    ["ASVEL"] = "/images/logos/asvel.png",
-                    ["RAPYD"] = "/images/logos/rapyd.png",
-                    ["Olympiacos Piraeus"] = "/images/logos/piraeus.png",
-                    ["Aktor"] = "/images/logos/aktora.png",
-                    ["Paris Basket"] = "/images/logos/paris.png",
-                    ["Partizan Mozzart"] = "/images/logos/partizan.png",
-                    ["Real Madrid"] = "/images/logos/realmadrid.png",
-                    ["Valencia"] = "/images/logos/valencia.png",
-                    ["Virtus"] = "/images/logos/virtus.png",
-                    ["Zalgiris"] = "/images/logos/zalgiris.png",
                 };
                 var heroMap = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase)
                 {
+                    //NBA
                     ["Hawks"] = "/images/team-bg/hawks.png",
                     ["Celtics"] = "/images/team-bg/celtics.png",
                     ["Nets"] = "/images/team-bg/nets.png",
@@ -105,6 +107,29 @@ namespace BasketWorld.Data
                     ["Raptors"] = "/images/team-bg/raptors.png",
                     ["Wizards"] = "/images/team-bg/wizards.png",
                     ["Jazz"] = "/images/team-bg/jazz.png",
+
+                    // EuroLeague (alignés avec tes fichiers)
+                    ["ANADOLU EFES ISTANBUL"] = "/images/team-bg/ANADOLU EFES ISTANBUL.png",
+                    ["AS MONACO"] = "/images/team-bg/AS MONACO.png",
+                    ["KOSNER BASKONIA VITORIA-GASTEIZ"] = "/images/team-bg/KOSNER BASKONIA VITORIA-GASTEIZ.png",
+                    ["FC BAYERN MUNICH"] = "/images/team-bg/FC BAYERN MUNICH.png",
+                    ["ZALGIRIS KAUNAS"] = "/images/team-bg/ZALGIRIS KAUNAS.png",
+                    ["FC BARCELONA"] = "/images/team-bg/FC BARCELONA.png",
+                    ["Dubai Basketball"] = "/images/team-bg/Dubai Basketball.png",
+                    ["FENERBAHCE BEKO ISTANBUL"] = "/images/team-bg/FENERBAHCE BEKO ISTANBUL.png",
+                    ["HAPOEL IBI TEL AVIV"] = "/images/team-bg/HAPOEL IBI TEL AVIV.png",
+                    ["PARTIZAN MOZZART BET BELGRADE"] = "/images/team-bg/PARTIZAN MOZZART BET BELGRADE.png",
+                    ["LDLC ASVEL VILLEURBANNE"] = "/images/team-bg/LDLC ASVEL VILLEURBANNE.png",
+                    ["MACCABI RAPYD TEL AVIV"] = "/images/team-bg/MACCABI RAPYD TEL AVIV.png",
+                    ["EA7 EMPORIO ARMANI MILAN"] = "/images/team-bg/Olimpia Milano.png",
+                    ["OLYMPIACOS PIRAEUS"] = "/images/team-bg/OLYMPIACOS PIRAEUS.png",
+                    ["PANATHINAIKOS AKTOR ATHENS"] = "/images/team-bg/Panathinaikos BC.png",
+                    ["CRVENA ZVEZDA MERIDIANBET BELGRADE"] = "/images/team-bg/CRVENA ZVEZDA MERIDIANBET BELGRAD.png",
+                    ["Paris Basketball"] = "/images/team-bg/Paris Basketball.png",
+                    ["REAL MADRID"] = "/images/team-bg/REAL MADRID.png",
+                    ["Valencia Basket"] = "/images/team-bg/VALENCIA BASKET.png",
+                    ["VIRTUS BOLOGNA"] = "/images/team-bg/Virtus Pallacanestro Bologna.png",
+                    ["Meridians"] = "/images/team-bg/MERIDIANS.png",
                 };
 
                 var teams = await ctx.Teams.ToListAsync();
@@ -190,7 +215,7 @@ namespace BasketWorld.Data
                 var wizards      = new Team { Name = "Wizards",      League = nba, LogoUrl = "/images/logos/Washington Wizards.png", HeroImageUrl = "/images/team-bg/wizards.png" };
 
                 var anadoluefesistanbul = new Team { Name = "Anadolu Efes Istanbul", League = euro, LogoUrl = "/images/logos/anadolu.png" };
-                var monaco              = new Team { Name = "Monaco",                League = euro, LogoUrl = "/images/logos/monaco.png" };
+                var monaco              = new Team { Name = "AS MONACO",             League = euro, LogoUrl = "/images/logos/monaco.png" };
                 var victoria            = new Team { Name = "Victoria",              League = euro, LogoUrl = "/images/logos/Saski_Baskonia.png" };
                 var meridians           = new Team { Name = "Meridians",             League = euro, LogoUrl = "/images/logos/KK_Crvena_zvezda_logo.svg.png" };
                 var dubai               = new Team { Name = "Dubai",                 League = euro, LogoUrl = "/images/logos/Dubai_BC_Logo.png" };

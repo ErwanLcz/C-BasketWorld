@@ -1,0 +1,276 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Connexion";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card shadow-lg">
+        <!-- Colonne gauche : branding -->
+        <div class="auth-side auth-side-left">
+            <div class="auth-brand">
+                <h1 class="auth-title">BasketWorld</h1>
+                <p class="auth-subtitle">
+                    Réserve tes places NBA & EuroLeague, 
+                    gagne des coins et vis la saison comme si tu y étais.
+                </p>
+            </div>
+
+            <div class="auth-highlight">
+                <h2>Connexion</h2>
+                <ul>
+                    <li>Accède à tes réservations</li>
+                    <li>Utilise tes coins pour de nouveaux matchs</li>
+                    <li>Suis les résultats en temps réel</li>
+                </ul>
+            </div>
+
+            <div class="auth-footer-note">
+                Nouveau ici ?
+                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">
+                    Crée ton compte en quelques clics
+                </a>
+            </div>
+        </div>
+
+        <!-- Colonne droite : formulaire -->
+        <div class="auth-side auth-side-right">
+            <section aria-labelledby="login-title">
+                <h2 id="login-title" class="form-title">Se connecter</h2>
+
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label"></label>
+                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            <label class="form-check-label" asp-for="Input.RememberMe"></label>
+                        </div>
+                        <a id="forgot-password" asp-page="./ForgotPassword" class="link-small">
+                            Mot de passe oublié ?
+                        </a>
+                    </div>
+
+                    <button id="login-submit" type="submit" class="btn btn-primary w-100 auth-btn">
+                        Se connecter
+                    </button>
+                </form>
+
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                {
+                    <hr class="auth-separator" />
+                    <div class="external-logins">
+                        <p class="small text-muted mb-2">Ou connecte-toi avec :</p>
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var provider in Model.ExternalLogins!)
+                                {
+                                    <button type="submit"
+                                            class="btn btn-outline-secondary flex-fill"
+                                            name="provider"
+                                            value="@provider.Name"
+                                            title="Se connecter avec @provider.DisplayName">
+                                        @provider.DisplayName
+                                    </button>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                }
+
+                <p class="mt-4 text-center small">
+                    Pas encore de compte ?
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">
+                        Créer un compte
+                    </a>
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    .auth-wrapper {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .auth-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        max-width: 960px;
+        width: 100%;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        background: #101318;
+        color: #f8f9fa;
+    }
+
+    .auth-side {
+        padding: 2.5rem 2.75rem;
+    }
+
+    .auth-side-left {
+        position: relative;
+        background: linear-gradient(135deg, #111827, #0b1220 50%, #1f2937);
+        border-right: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .auth-side-left::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            radial-gradient(circle at 10% 0, rgba(255,140,0,0.15) 0, transparent 55%),
+            radial-gradient(circle at 80% 100%, rgba(59,130,246,0.16) 0, transparent 55%);
+        opacity: 0.9;
+        pointer-events: none;
+    }
+
+    .auth-brand,
+    .auth-highlight,
+    .auth-footer-note {
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-title {
+        font-size: 2.4rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: .5rem;
+        color: var(--orange, #ff8c00);
+    }
+
+    .auth-subtitle {
+        font-size: 0.98rem;
+        max-width: 24rem;
+        color: rgba(249,250,251,0.8);
+    }
+
+    .auth-highlight {
+        margin-top: 2.5rem;
+        padding: 1.5rem 1.25rem;
+        border-radius: 1rem;
+        background: rgba(15,23,42,0.85);
+        border: 1px solid rgba(248, 250, 252, 0.09);
+        backdrop-filter: blur(8px);
+    }
+
+    .auth-highlight h2 {
+        font-size: 1.15rem;
+        margin-bottom: .75rem;
+        font-weight: 600;
+    }
+
+    .auth-highlight ul {
+        padding-left: 1.2rem;
+        margin: 0;
+        font-size: 0.92rem;
+        color: rgba(249,250,251,0.85);
+    }
+
+    .auth-highlight li + li {
+        margin-top: .35rem;
+    }
+
+    .auth-footer-note {
+        margin-top: 2.5rem;
+        font-size: 0.9rem;
+        color: rgba(209,213,219,0.9);
+    }
+
+    .auth-footer-note a {
+        color: var(--orange, #ff8c00);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .auth-footer-note a:hover {
+        text-decoration: underline;
+    }
+
+    .auth-side-right {
+        background: #0b1120;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+
+    .auth-btn {
+        background: var(--orange, #ff8c00);
+        border-color: var(--orange, #ff8c00);
+        font-weight: 600;
+        padding: 0.7rem 1rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .auth-btn:hover {
+        filter: brightness(1.05);
+        background: var(--orange, #ff8c00);
+        border-color: var(--orange, #ff8c00);
+    }
+
+    .link-small {
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+
+    .link-small:hover {
+        text-decoration: underline;
+    }
+
+    .auth-separator {
+        margin: 2rem 0 1.25rem;
+        border-color: rgba(148,163,184,0.25);
+    }
+
+    .external-logins button {
+        font-size: 0.9rem;
+        border-radius: 999px;
+    }
+
+    .text-danger {
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 900px) {
+        .auth-card {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-side-left {
+            display: none; /* si tu veux garder, remplace par padding plus petit */
+        }
+
+        .auth-side-right {
+            padding: 2rem 1.75rem;
+        }
+    }
+</style>

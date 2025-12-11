@@ -48,7 +48,7 @@
 @if (!User.Identity.IsAuthenticated)
 {
     <div class="alert alert-info">Connecte-toi pour réserver ce match (1 coin).</div>
-    <a class="btn btn-warning" asp-area="" asp-controller="Account" asp-action="Login">Se connecter</a>
+    <a class="btn btn-warning" asp-area="Identity" asp-controller="Account" asp-action="Login">Se connecter</a>
 }
 else if (!hasAccess)
 {

@@ -18,7 +18,7 @@
         <div class="card text-center p-3">
             <h4>Pack Débutant</h4>
             <p class="text-secondary">10 coins</p>
-            <form method="post" asp-action="Buy">
+            <form method="get" asp-controller="Checkout" asp-action="Start">
                 <input type="hidden" name="amount" value="10" />
                 <button type="submit" class="btn btn-warning">Acheter 10 coins</button>
             </form>
@@ -29,7 +29,7 @@
         <div class="card text-center p-3">
             <h4>Pack Fan</h4>
             <p class="text-secondary">50 coins</p>
-            <form method="post" asp-action="Buy">
+            <form method="get" asp-controller="Checkout" asp-action="Start">
                 <input type="hidden" name="amount" value="50" />
                 <button type="submit" class="btn btn-warning">Acheter 50 coins</button>
             </form>
@@ -40,7 +40,7 @@
         <div class="card text-center p-3">
             <h4>Pack Pro</h4>
             <p class="text-secondary">100 coins</p>
-            <form method="post" asp-action="Buy">
+            <form method="get" asp-controller="Checkout" asp-action="Start">
                 <input type="hidden" name="amount" value="100" />
                 <button type="submit" class="btn btn-warning">Acheter 100 coins</button>
             </form>

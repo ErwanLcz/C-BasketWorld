@@ -2,9 +2,40 @@
 @{
     ViewData["Title"] = Model.LeagueName;
 
-    // Helpers pour fallback si une héro-image n’est pas renseignée
     string HomeHero(dynamic g) => g?.HomeTeam?.HeroImageUrl ?? Url.Content("~/images/team-bg/default-home.png");
     string AwayHero(dynamic g) => g?.AwayTeam?.HeroImageUrl ?? Url.Content("~/images/team-bg/default-away.png");
+
+    // ➜ Alias d’affichage pour les noms trop longs
+    string ShortTeamName(string? raw)
+    {
+      if (string.IsNullOrWhiteSpace(raw)) return "";
+
+      return raw.ToUpperInvariant() switch
+      {
+          "ANADOLU EFES ISTANBUL" => "Anadolu",
+          "AS MONACO" => "Monaco",
+          "KOSNER BASKONIA VITORIA-GASTEIZ" => "Baskonia",
+          "FC BAYERN MUNICH" => "Bayern",
+          "ZALGIRIS KAUNAS" => "Zalgiris",
+          "FC BARCELONA" => "Barcelona",
+          "DUBAI BASKETBALL" => "Dubai",
+          "FENERBAHCE BEKO ISTANBUL" => "Fenerbahce",
+          "HAPOEL IBI TEL AVIV" => "Hapoel",
+          "PARTIZAN MOZZART BET BELGRADE" => "Partizan",
+          "LDLC ASVEL VILLEURBANNE" => "ASVEL",
+          "MACCABI RAPYD TEL AVIV" => "Maccabi",
+          "EA7 EMPORIO ARMANI MILAN" => "Milano", // ou "Olimpia Milano"
+          "OLYMPIACOS PIRAEUS" => "Olympiacos",
+          "PANATHINAIKOS AKTOR ATHENS" => "Panathinaikos",
+          "CRVENA ZVEZDA MERIDIANBET BELGRADE" => "Crvena",
+          "PARIS BASKETBALL" => "Paris",
+          "REAL MADRID" => "Real Madrid",
+          "VALENCIA BASKET" => "Valencia",
+          "VIRTUS BOLOGNA" => "Bologna",
+          "MERIDIANS" => "Meridians",
+          _ => raw
+      };
+    }
 }
 
 <!--<h1 class="mb-4" style="color: var(--orange)">@Model.LeagueName</h1>-->
@@ -21,7 +52,7 @@
                         data-team-id="@team.Id"
                         data-team-name="@team.Name">
                     <img src="@(string.IsNullOrEmpty(team.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : team.LogoUrl)" alt="@team.Name" />
-                    <span>@team.Name</span>
+                    <span>@ShortTeamName(team.Name)</span>
                 </div>
             }
         </div>
@@ -52,12 +83,12 @@
 
             <div class="teams">
                 <div class="team home">
-                <span class="name">@g.HomeTeam?.Name</span>
+                <span class="name">@ShortTeamName(g.HomeTeam?.Name)</span>
                 <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
                 </div>
                 <strong class="vs">vs</strong>
                 <div class="team away">
-                <span class="name">@g.AwayTeam?.Name</span>
+                <span class="name">@ShortTeamName(g.AwayTeam?.Name)</span>
                 <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
                 </div>
             </div>
@@ -93,14 +124,14 @@ else
 
                 <div class="teams">
                     <div class="team home">
-                        <span class="name">@g.HomeTeam?.Name</span>
+                        <span class="name">@ShortTeamName(g.HomeTeam?.Name)</span>
                         <img src="@(string.IsNullOrEmpty(g.HomeTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.HomeTeam!.LogoUrl)" alt="@g.HomeTeam?.Name" />
                     </div>
 
                     <strong class="vs">vs</strong>
 
                     <div class="team away">
-                        <span class="name">@g.AwayTeam?.Name</span>
+                        <span class="name">@ShortTeamName(g.AwayTeam?.Name)</span>
                         <img src="@(string.IsNullOrEmpty(g.AwayTeam?.LogoUrl) ? Url.Content("~/images/logos/fallback.png") : g.AwayTeam!.LogoUrl)" alt="@g.AwayTeam?.Name" />
                     </div>
                 </div>

@@ -40,6 +40,33 @@
      Sync NBA (élargir jusqu’à ≥5 matchs)
   </a>
 </div>
+<h2 class="mt-4">Synchronisation EuroLeague</h2>
+<div class="d-flex gap-2 mb-3">
+    <form asp-action="SyncEuroleagueTeams" method="post">
+        <button type="submit" class="btn btn-outline-primary">
+            Sync EuroLeague Teams
+        </button>
+    </form>
+
+    <form asp-action="SyncEuroleagueSeason" method="post" class="d-flex gap-2">
+        <input type="text"
+            name="season"
+            value="2025"
+            class="form-control form-control-sm"
+            style="max-width: 140px;" />
+        <button type="submit" class="btn btn-outline-success btn-sm">
+            Sync Saison EuroLeague
+        </button>
+    </form>
+        <form asp-action="SyncEuroleagueOfficial" method="post" class="d-inline">
+        <input type="hidden" name="seasonCode" value="E2025" />
+        <button type="submit" class="btn btn-sm btn-primary">
+            Sync EuroLeague (API officielle)
+        </button>
+    </form>
+
+</div>
+
 
 
 <h3 class="mb-3">Derniers matchs NBA en base (source: balldontlie)</h3>

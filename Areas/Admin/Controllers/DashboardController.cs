@@ -12,18 +12,37 @@ namespace BasketWorld.Areas.Admin.Controllers
     {
         private readonly NbaSyncService _sync;
         private readonly ApplicationDbContext _ctx;
+        private readonly EuroleagueSyncService _euroSync;
+        private readonly EuroleagueOfficialSyncService _euroOfficial;
 
-        public DashboardController(NbaSyncService sync, ApplicationDbContext ctx)
+
+        public DashboardController(
+            NbaSyncService sync,
+            EuroleagueSyncService euroSync,
+            EuroleagueOfficialSyncService euroOfficial,
+            ApplicationDbContext ctx)
         {
             _sync = sync;
+            _euroSync = euroSync;
+            _euroOfficial = euroOfficial;  // ✅ maintenant c'est un paramètre
             _ctx = ctx;
         }
+
 
         /// <summary>
         /// Lance une synchronisation NBA.
         /// mode = "exact" (par défaut) : une seule fenêtre past/next
         /// mode = "expand" : essaie plusieurs fenêtres successives (pour obtenir des matchs "Final")
         /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SyncEuroleagueOfficial(string seasonCode = "E2025")
+        {
+            var upserts = await _euroOfficial.SyncSeasonAsync(seasonCode);
+            TempData["msg"] = $"EuroLeague (officielle) : {upserts} matchs synchronisés pour {seasonCode}.";
+            return RedirectToAction("Index");
+        }
+        
         public async Task<IActionResult> SyncNba(int past = 2, int next = 5, string mode = "exact", int minUpserts = 1)
         {
             try
@@ -92,5 +111,42 @@ namespace BasketWorld.Areas.Admin.Controllers
             }
             return View(games);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SyncEuroleagueTeams()
+        {
+            try
+            {
+                var upserts = await _euroSync.SyncTeamsAsync();
+                TempData["msg"] = $"EuroLeague : {upserts} équipes synchronisées.";
+            }
+            catch (Exception ex)
+            {
+                TempData["err"] = "Erreur sync EuroLeague teams : " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SyncEuroleagueSeason(string season = "2025")
+        {
+            try
+            {
+                var upserts = await _euroSync.SyncSeasonGamesAsync(season);
+                TempData["msg"] = $"EuroLeague : {upserts} matchs synchronisés pour {season}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["err"] = "Erreur sync EuroLeague games : " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        
+
+
     }
 }

@@ -78,10 +78,32 @@
     </button>
     <div id="nav" class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Accueil</a></li>
-        <li class="nav-item"><a class="nav-link" asp-controller="Leagues" asp-action="Details" asp-route-name="NBA">NBA</a></li>
-        <li class="nav-item"><a class="nav-link" asp-controller="Leagues" asp-action="Details" asp-route-name="EuroLeague">EuroLeague</a></li>
-        <li class="nav-item"><a class="nav-link" asp-controller="Shop" asp-action="Index">Boutique</a></li>
+        <li class="nav-item">
+            <a class="nav-link"
+              asp-area=""
+              asp-controller="Home"
+              asp-action="Index">Accueil</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+              asp-area=""
+              asp-controller="Leagues"
+              asp-action="Details"
+              asp-route-name="NBA">NBA</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+              asp-area=""
+              asp-controller="Leagues"
+              asp-action="Details"
+              asp-route-name="EuroLeague">EuroLeague</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+              asp-area=""
+              asp-controller="Shop"
+              asp-action="Index">Boutique</a>
+        </li>
       </ul>
       <ul class="navbar-nav">
         @if (SignInManager.IsSignedIn(User))

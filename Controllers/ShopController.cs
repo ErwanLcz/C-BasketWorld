@@ -22,24 +22,5 @@ namespace BasketWorld.Controllers
         {
             return View();
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Buy(int amount)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                TempData["err"] = "Session expirée, veuillez vous reconnecter.";
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Simuler un achat
-            user.Coins += amount;
-            await _ctx.SaveChangesAsync();
-
-            TempData["ok"] = $"✅ Vous avez acheté {amount} coins !";
-            return RedirectToAction(nameof(Index));
-        }
     }
 }

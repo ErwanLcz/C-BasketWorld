@@ -1,0 +1,60 @@
+@model BasketWorld.Controllers.FakeCheckoutViewModel
+@{
+    ViewData["Title"] = "Paiement";
+}
+
+<h1 class="mb-4 text-warning">Paiement sécurisé (simulation)</h1>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h4 class="mb-3">Récapitulatif</h4>
+      <p class="mb-1">Produit : <strong>@Model.ProductLabel</strong></p>
+      <p class="text-muted">Simulation : vous pouvez saisir n'importe quels numéros.</p>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h4 class="mb-3">Informations de carte (FAUSSES ACCEPTÉES)</h4>
+
+      <form method="post" asp-action="Pay">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Amount" value="@Model.Amount" />
+
+        <div class="mb-3">
+          <label class="form-label">Titulaire</label>
+          <input name="Cardholder" class="form-control" placeholder="Ex: John Doe" required />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Numéro de carte</label>
+          <input name="CardNumber" class="form-control" placeholder="4242 4242 4242 4242" inputmode="numeric" />
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col">
+            <label class="form-label">Mois</label>
+            <input name="ExpMonth" class="form-control" placeholder="MM" maxlength="2" />
+          </div>
+          <div class="col">
+            <label class="form-label">Année</label>
+            <input name="ExpYear" class="form-control" placeholder="YY" maxlength="2" />
+          </div>
+          <div class="col">
+            <label class="form-label">CVC</label>
+            <input name="Cvc" class="form-control" placeholder="123" maxlength="4" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-warning w-100">
+          Payer et recevoir @Model.Amount coins
+        </button>
+
+        <div class="form-text mt-2">
+          Simulation de paiement : aucune donnée réelle n'est transmise ni stockée.
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
