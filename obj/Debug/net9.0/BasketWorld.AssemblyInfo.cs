@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BasketWorld")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+58e72bd322c8ada3e32417583688bd0ebc35349e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+97e2d649d69fd4846b8a21aa410ecc443c93fd9e")]
 [assembly: System.Reflection.AssemblyProductAttribute("BasketWorld")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BasketWorld")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

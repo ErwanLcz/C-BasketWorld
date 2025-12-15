@@ -1,90 +1,638 @@
-﻿@{
+﻿@using BasketWorld.Models
+@{
     ViewData["Title"] = "Accueil";
-    var last3 = ViewBag.Last3 as List<Game>;
-    var next3 = ViewBag.Next3 as List<Game>;
+    var last3 = ViewBag.Last3 as List<Game> ?? new List<Game>();
+    var next3 = ViewBag.Next3 as List<Game> ?? new List<Game>();
+
+    string ShortTeamName(string? raw)
+    {
+      if (string.IsNullOrWhiteSpace(raw)) return "";
+
+      return raw.ToUpperInvariant() switch
+      {
+          "ANADOLU EFES ISTANBUL" => "Anadolu",
+          "AS MONACO" => "Monaco",
+          "KOSNER BASKONIA VITORIA-GASTEIZ" => "Baskonia",
+          "FC BAYERN MUNICH" => "Bayern",
+          "ZALGIRIS KAUNAS" => "Zalgiris",
+          "FC BARCELONA" => "Barcelona",
+          "DUBAI BASKETBALL" => "Dubai",
+          "FENERBAHCE BEKO ISTANBUL" => "Fenerbahce",
+          "HAPOEL IBI TEL AVIV" => "Hapoel",
+          "PARTIZAN MOZZART BET BELGRADE" => "Partizan",
+          "LDLC ASVEL VILLEURBANNE" => "ASVEL",
+          "MACCABI RAPYD TEL AVIV" => "Maccabi",
+          "EA7 EMPORIO ARMANI MILAN" => "Milano", // ou "Olimpia Milano"
+          "OLYMPIACOS PIRAEUS" => "Olympiacos",
+          "PANATHINAIKOS AKTOR ATHENS" => "Panathinaikos",
+          "CRVENA ZVEZDA MERIDIANBET BELGRADE" => "Crvena",
+          "PARIS BASKETBALL" => "Paris",
+          "REAL MADRID" => "Real Madrid",
+          "VALENCIA BASKET" => "Valencia",
+          "VIRTUS BOLOGNA" => "Bologna",
+          "MERIDIANS" => "Meridians",
+          _ => raw
+      };
+    }
 }
 
-<div class="mb-5 text-white">
-    <h1 class="mb-3">Bienvenue sur <span style= "color: var(--orange)">BasketWorld</span></h1>
-    <p class="lead">
-        Réservez vos places pour les matchs 
-        <strong style= "color: var(--orange)">NBA</strong> et 
-        <strong style= "color: var(--orange)">EuroLeague</strong>.
-    </p>
+<div class="home-hero card shadow-lg border-0 mb-5">
+    <div class="home-hero-inner">
+        <div class="home-hero-left">
+            <p class="hero-kicker">Bienvenue sur</p>
+            <h1 class="hero-title">
+                Basket<span class="hero-title-highlight">World</span>
+            </h1>
+            <p class="hero-subtitle">
+                Réserve tes places pour les plus beaux matchs 
+                <strong>NBA</strong> et <strong>EuroLeague</strong>,
+                gagne des coins et suis la saison comme un vrai fan.
+            </p>
+
+            <div class="hero-cta">
+                <a asp-area="" asp-controller="Leagues" asp-action="Details" asp-route-name="NBA" class="btn btn-primary hero-btn">
+                    Voir les matchs NBA
+                </a>
+                <a asp-area="" asp-controller="Leagues" asp-action="Details" asp-route-name="EuroLeague" class="btn btn-outline-light hero-btn-secondary">
+                    Voir les matchs EuroLeague
+                </a>
+            </div>
+
+            <div class="hero-meta">
+                <span class="badge bg-dark-subtle text-uppercase me-2">Coins & Réservations</span>
+                <span class="hero-meta-text">Matches mis à jour automatiquement avec les API officielles.</span>
+            </div>
+        </div>
+
+        <div class="home-hero-right">
+            <div class="hero-game-highlight">
+                <p class="hero-highlight-label">Prochain gros match</p>
+                @if (next3.Any())
+                {
+                    var next = next3.OrderBy(g => g.StartAt).First();
+                    <div class="hero-highlight-league badge-league @(next.League?.Name == "NBA" ? "badge-nba" : "badge-euro")">
+                        @next.League?.Name
+                    </div>
+
+                    <div class="hero-highlight-teams">
+                        <div class="team-side">
+                            <img src="@next.HomeTeam?.LogoUrl" alt="@next.HomeTeam?.Name" class="hero-team-logo" />
+                            <span class="hero-team-name">@ShortTeamName(next.HomeTeam?.Name)</span>
+                        </div>
+                        <span class="hero-vs">VS</span>
+                        <div class="team-side">
+                            <img src="@next.AwayTeam?.LogoUrl" alt="@next.AwayTeam?.Name" class="hero-team-logo" />
+                            <span class="hero-team-name">@ShortTeamName(next.AwayTeam?.Name)</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-highlight-meta">
+                        <span>@next.StartAt.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
+                        <span class="dot-separator">•</span>
+                        <span>@next.Venue</span>
+                    </div>
+
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@next.Id"
+                       class="btn btn-sm hero-btn-outline mt-2">
+                        Réserver ce match
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Aucun match à venir pour le moment.</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
-<h2 class="mb-3" style= "color: var(--orange)">Derniers résultats</h2>
-<div class="row g-3 mb-5">
-    @if (last3 != null && last3.Any())
-    {
-        foreach (var g in last3)
-        {
-            <div class="col-md-4">
-                <div class="card bg-dark text-white border border-warning shadow-lg p-3 h-100">
-                @if (g.Status == "Final" && g.HomeScore.HasValue && g.AwayScore.HasValue)
-                    {
-                    <div class="mt-2">
-                        <span class="badge text-bg-secondary">Final</span>
-                        <div class="fw-bold mt-1">@g.HomeTeam.Name @g.HomeScore - @g.AwayScore @g.AwayTeam.Name</div>
-                    </div>
-                    }
+<!-- Derniers résultats -->
+<section class="home-section mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="home-section-title">
+            Derniers résultats
+        </h2>
+        <a asp-area="" asp-controller="Leagues" asp-action="Details" asp-route-name="NBA" class="home-section-link">
+            Voir tous les résultats
+        </a>
+    </div>
 
-                    <h5 class="card-title" style="color: var(--orange)">@g.League.Name</h5>
-                    <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-                        <img src="@g.HomeTeam.LogoUrl" alt="@g.HomeTeam.Name" class="rounded" style="width:40px;height:40px;object-fit:contain;">
-                        <strong>@g.HomeTeam.Name</strong>
-                        <span class="text-secondary">vs</span>
-                        <strong>@g.AwayTeam.Name</strong>
-                        <img src="@g.AwayTeam.LogoUrl" alt="@g.AwayTeam.Name" class="rounded" style="width:40px;height:40px;object-fit:contain;">
-                    </div>
-                    <div class="text-light">
-                        @g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.Venue
-                    </div>
-                    <div class="mt-3">
-                        <a class="btn btn-outline-warning btn-sm w-100" 
-                           asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
-                            Voir le match
-                        </a>
+    @if (last3.Any())
+    {
+        <div class="row g-3">
+            @foreach (var g in last3)
+            {
+                <div class="col-md-4">
+                    <div class="game-card h-100">
+                        <div class="game-card-header">
+                            <span class="badge-league @(g.League?.Name == "NBA" ? "badge-nba" : "badge-euro")">
+                                @g.League?.Name
+                            </span>
+                            @if (g.Status == "Final" && g.HomeScore.HasValue && g.AwayScore.HasValue)
+                            {
+                                <span class="badge badge-final">Final</span>
+                            }
+                        </div>
+
+                        <div class="game-card-body">
+                            <div class="game-teams">
+                                <div class="game-team">
+                                    <img src="@g.HomeTeam?.LogoUrl" alt="@g.HomeTeam?.Name" class="game-team-logo" />
+                                    <span class="game-team-name">@ShortTeamName(g.HomeTeam?.Name)</span>
+                                </div>
+                                <div class="game-score">
+                                    @if (g.HomeScore.HasValue && g.AwayScore.HasValue && g.Status == "Final")
+                                    {
+                                        <span class="score">@g.HomeScore</span>
+                                        <span class="score-sep">-</span>
+                                        <span class="score">@g.AwayScore</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="score-upcoming">Terminé</span>
+                                    }
+                                </div>
+                                <div class="game-team game-team-right">
+                                    <span class="game-team-name">@ShortTeamName(g.AwayTeam?.Name)</span>
+                                    <img src="@g.AwayTeam?.LogoUrl" alt="@g.AwayTeam?.Name" class="game-team-logo" />
+                                </div>
+                            </div>
+
+                            <div class="game-meta">
+                                <span>@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                <span class="dot-separator">•</span>
+                                <span>@g.Venue</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card-footer">
+                            <a class="btn btn-sm game-btn-outline w-100"
+                               asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
+                                Voir la fiche du match
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     }
     else
     {
-        <div class="text-white">Aucun match passé.</div>
+        <p class="text-muted">Aucun match passé pour le moment.</p>
     }
-</div>
+</section>
 
-<h2 class="mb-3" style= "color: var(--orange)">Prochains matchs</h2>
-<div class="row g-3">
-    @if (next3 != null && next3.Any())
+<!-- Prochains matchs -->
+<section class="home-section mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="home-section-title">
+            Prochains matchs
+        </h2>
+        <a asp-area="" asp-controller="Leagues" asp-action="Details" asp-route-name="EuroLeague" class="home-section-link">
+            Voir le calendrier complet
+        </a>
+    </div>
+
+    @if (next3.Any())
     {
-        foreach (var g in next3)
-        {
-            <div class="col-md-4">
-                <div class="card bg-dark text-white border border-warning shadow-lg p-3 h-100">
-                    <h5 class="card-title style= "color: var(--orange)"">@g.League.Name</h5>
-                    <div class="mb-2">
-                        <strong>@g.HomeTeam.Name</strong> 
-                        <span class="text-secondary">vs</span> 
-                        <strong>@g.AwayTeam.Name</strong>
-                    </div>
-                    <div class="text-light">
-                        @g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.Venue
-                    </div>
-                    <div class="mt-3">
-                        <a class="btn btn-warning text-dark fw-bold w-100" 
-                           asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
-                            Réserver
-                        </a>
+        <div class="row g-3">
+            @foreach (var g in next3)
+            {
+                <div class="col-md-4">
+                    <div class="game-card game-card-upcoming h-100">
+                        <div class="game-card-header">
+                            <span class="badge-league @(g.League?.Name == "NBA" ? "badge-nba" : "badge-euro")">
+                                @g.League?.Name
+                            </span>
+                            <span class="badge badge-next">À venir</span>
+                        </div>
+
+                        <div class="game-card-body">
+                            <div class="game-teams">
+                                <div class="game-team">
+                                    <img src="@g.HomeTeam?.LogoUrl" alt="@g.HomeTeam?.Name" class="game-team-logo" />
+                                    <span class="game-team-name">@ShortTeamName(g.HomeTeam?.Name)</span>
+                                </div>
+                                <div class="game-score">
+                                    <span class="score-upcoming">
+                                        @g.StartAt.ToLocalTime().ToString("dd/MM HH:mm")
+                                    </span>
+                                </div>
+                                <div class="game-team game-team-right">
+                                    <span class="game-team-name">@ShortTeamName(g.AwayTeam?.Name)</span>
+                                    <img src="@g.AwayTeam?.LogoUrl" alt="@g.AwayTeam?.Name" class="game-team-logo" />
+                                </div>
+                            </div>
+
+                            <div class="game-meta">
+                                <span>@g.Venue</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card-footer">
+                            <a class="btn btn-sm game-btn-primary w-100"
+                               asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">
+                                Réserver ce match
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     }
     else
     {
-        <div class="text-muted">Aucun match à venir.</div>
+        <p class="text-muted">Aucun match à venir pour le moment.</p>
     }
-</div>
+</section>
+
+<style>
+    .home-hero {
+        background: radial-gradient(circle at top left, rgba(255, 122, 0, 0.18), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.16), transparent 55%),
+                    #040715;
+        border-radius: 1.5rem;
+        color: #f9fafb;
+        padding: 2.5rem 2.25rem;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .home-hero-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+        gap: 2.5rem;
+        align-items: center;
+    }
+
+    .hero-kicker {
+        text-transform: uppercase;
+        letter-spacing: .2em;
+        font-size: .75rem;
+        color: rgba(209, 213, 219, 0.85);
+        margin-bottom: .5rem;
+    }
+
+    .hero-title {
+        font-size: 2.6rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        margin-bottom: .5rem;
+    }
+
+    .hero-title-highlight {
+        color: var(--orange, #ff8c00);
+    }
+
+    .hero-subtitle {
+        font-size: 0.98rem;
+        color: rgba(229, 231, 235, 0.9);
+        max-width: 28rem;
+    }
+
+    .hero-cta {
+        margin-top: 1.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+
+    .hero-btn {
+        background: var(--orange, #ff8c00);
+        border-color: var(--orange, #ff8c00);
+        color: #000;
+        font-weight: 600;
+        border-radius: 999px;
+        padding-inline: 1.4rem;
+    }
+
+    .hero-btn-secondary {
+        border-radius: 999px;
+        border-width: 1px;
+        font-weight: 500;
+    }
+
+    .hero-meta {
+        margin-top: 1.75rem;
+        font-size: .85rem;
+        color: rgba(209, 213, 219, 0.95);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .hero-meta .badge {
+        background: rgba(15,23,42,0.85);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        color: #e5e7eb;
+        border-radius: 999px;
+        padding: .35rem .8rem;
+    }
+
+    .home-hero-right {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .hero-game-highlight {
+        background: rgba(15,23,42,0.85);
+        border-radius: 1.25rem;
+        padding: 1.5rem 1.4rem;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        max-width: 360px;
+        width: 100%;
+    }
+
+    .hero-highlight-label {
+        font-size: .8rem;
+        text-transform: uppercase;
+        letter-spacing: .15em;
+        color: rgba(156, 163, 175, 0.95);
+        margin-bottom: .4rem;
+    }
+
+    .hero-highlight-league {
+        display: inline-block;
+        margin-bottom: .9rem;
+    }
+
+    .hero-highlight-teams {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .team-side {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+    }
+
+    .hero-team-logo {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+        margin-bottom: .35rem;
+        background: #020617;
+        border-radius: 999px;
+        padding: .4rem;
+    }
+
+    .hero-team-name {
+        font-size: .9rem;
+        font-weight: 600;
+    }
+
+    .hero-vs {
+        font-weight: 700;
+        font-size: .85rem;
+        color: rgba(209, 213, 219, 0.9);
+    }
+
+    .hero-highlight-meta {
+        margin-top: .9rem;
+        font-size: .85rem;
+        color: rgba(148, 163, 184, 0.95);
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn-outline {
+        border-radius: 999px;
+        border-color: rgba(148,163,184,0.6);
+        color: #e5e7eb;
+        font-weight: 500;
+        padding-inline: 1rem;
+    }
+
+    .hero-btn-outline:hover {
+        border-color: var(--orange, #ff8c00);
+        color: #000;
+        background: var(--orange, #ff8c00);
+    }
+
+    .home-section {
+        color: #f9fafb;
+    }
+
+    .home-section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .home-section-title::before {
+        content: "";
+        width: 6px;
+        height: 22px;
+        border-radius: 999px;
+        background: var(--orange, #ff8c00);
+    }
+
+    .home-section-link {
+        font-size: .9rem;
+        color: rgba(209, 213, 219, 0.9);
+        text-decoration: none;
+    }
+
+    .home-section-link:hover {
+        color: var(--orange, #ff8c00);
+        text-decoration: underline;
+    }
+
+    .game-card {
+        background: radial-gradient(circle at top left, rgba(255, 122, 0, 0.08), transparent 55%),
+                    #020617;
+        border-radius: 1.1rem;
+        border: 1px solid rgba(30, 64, 175, 0.35);
+        padding: 1rem 1rem .9rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .game-card-upcoming {
+        border-color: rgba(234, 179, 8, 0.55);
+    }
+
+    .game-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .6rem;
+        font-size: .8rem;
+    }
+
+    .badge-league {
+        border-radius: 999px;
+        padding: .25rem .7rem;
+        font-size: .7rem;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+    }
+
+    .badge-nba {
+        background: linear-gradient(to right, #2563eb, #1d4ed8);
+        color: #f9fafb;
+    }
+
+    .badge-euro {
+        background: linear-gradient(to right, #111827, #020617);
+        color: #e5e7eb;
+        border: 1px solid rgba(249, 250, 251, 0.1);
+    }
+
+    .badge-final {
+        background: rgba(22, 163, 74, 0.15);
+        color: #bbf7d0;
+        border-radius: 999px;
+        padding: .2rem .6rem;
+        border: 1px solid rgba(22, 163, 74, 0.4);
+    }
+
+    .badge-next {
+        background: rgba(234, 179, 8, 0.15);
+        color: #facc15;
+        border-radius: 999px;
+        padding: .2rem .6rem;
+        border: 1px solid rgba(234, 179, 8, 0.5);
+    }
+
+    .game-card-body {
+        margin-top: .2rem;
+    }
+
+    .game-teams {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1.4fr);
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .game-team {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .game-team-right {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .game-team-logo {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        background: #020617;
+        border-radius: 999px;
+        padding: .2rem;
+    }
+
+    .game-team-name {
+        font-size: .9rem;
+        font-weight: 600;
+        color: #f9fafb;
+    }
+
+    .game-score {
+        text-align: center;
+        font-weight: 700;
+        font-size: .95rem;
+    }
+
+    .score {
+        display: inline-block;
+        min-width: 1.7rem;
+        color:white;
+    }
+
+    .score-sep {
+        margin-inline: .15rem;
+        color: rgba(148, 163, 184, 0.9);
+    }
+
+    .score-upcoming {
+        font-size: .85rem;
+        color: rgba(252, 211, 77, 0.95);
+    }
+
+    .game-meta {
+        margin-top: .55rem;
+        font-size: .8rem;
+        color: rgba(148, 163, 184, 0.95);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .dot-separator {
+        font-size: .75rem;
+        color: rgba(148, 163, 184, 0.9);
+    }
+
+    .game-card-footer {
+        margin-top: .75rem;
+    }
+
+    .game-btn-outline {
+        border-radius: 999px;
+        border-color: rgba(148,163,184,0.5);
+        color: #e5e7eb;
+        font-size: .85rem;
+        font-weight: 500;
+    }
+
+    .game-btn-outline:hover {
+        border-color: var(--orange, #ff8c00);
+        background: var(--orange, #ff8c00);
+        color: #000;
+    }
+
+    .game-btn-primary {
+        border-radius: 999px;
+        background: var(--orange, #ff8c00);
+        border-color: var(--orange, #ff8c00);
+        font-size: .85rem;
+        font-weight: 600;
+        color: #000;
+    }
+
+    .game-btn-primary:hover {
+        filter: brightness(1.05);
+    }
+
+    @@media (max-width: 992px) {
+        .home-hero-inner {
+            grid-template-columns: 1fr;
+        }
+
+        .home-hero-right {
+            justify-content: flex-start;
+        }
+
+        .hero-game-highlight {
+            max-width: 100%;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .home-hero {
+            padding: 1.8rem 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 2.1rem;
+        }
+    }
+</style>

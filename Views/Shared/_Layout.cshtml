@@ -11,51 +11,140 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
   <style>
     :root {
-      --orange: #ff6a00;
-      --bg: #fdf6ef;           /* beige clair */
-      --line: rgba(0,0,0,0.05);
-      --card: #fff;
-      --text: #1a1a1a;
-      --white : #fff;
-    }
+  --orange: #ff6a00;
+  --orange-dark: #e15500;
+  --bg: #fdf6ef;
+  --card: #fff;
+  --text: #1a1a1a;
+  --white: #fff;
+}
 
-    /* fond général : effet cuir basket léger */
-    body {
-      background: url("/images/bg-basket.png") repeat;
-      background-size: cover;
-      background-attachment: fixed;
-      color: #1a1a1a;
-      font-family: "Segoe UI", Roboto, sans-serif;
-    }
-    /* Navbar : orange NBA */
-    .navbar {
-      background: var(--orange);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .navbar .nav-link, .navbar-brand {
-      color: #000 !important;
-      font-weight: 600;
-    }
-    .navbar .nav-link:hover {
-      text-decoration: underline;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-    }
+/* fond général */
+body {
+  background: url("/images/bg-basket.png") repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: "Segoe UI", Oswald, sans-serif;
+}
 
+/* NAVBAR */
+.bw-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: linear-gradient(90deg, #ff6a00, #ff7a00);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
 
-    /* Boutons */
-    .btn-warning, .btn-primary, .btn-success {
-      background-color: var(--orange);
-      border-color: var(--orange);
-      color: #000;
-    }
-    .btn-warning:hover, .btn-primary:hover, .btn-success:hover {
-      filter: brightness(1.05);
-    }
+/* logo */
+.bw-logo {
+  height: 48px;
+}
+
+/* liens centraux */
+.bw-nav-links .nav-link {
+  position: relative;
+  margin: 0 0.35rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #111 !important;
+}
+
+.bw-nav-links .nav-link:hover,
+.bw-nav-links .nav-link:focus {
+  background: rgba(0,0,0,0.08);
+  text-decoration: none;
+}
+
+/* petit trait sous le lien actif au hover */
+.bw-nav-links .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0.2rem;
+  height: 2px;
+  background: rgba(0,0,0,0);
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+.bw-nav-links .nav-link:hover::after {
+  background: rgba(0,0,0,0.65);
+}
+
+/* zone utilisateur droite */
+.bw-user-area .nav-item {
+  display: flex;
+  align-items: center;
+}
+
+/* badge coins */
+.bw-coins-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.16);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* boutons style pill */
+.bw-btn-solid,
+.bw-btn-outline,
+.bw-btn-ghost {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 0.35rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* bouton principal (Créer un compte) */
+.bw-btn-solid {
+  background: #111;
+  border: 1px solid #111;
+  color: #fff;
+}
+.bw-btn-solid:hover {
+  background: #000;
+  border-color: #000;
+}
+
+/* bouton contour (Connexion / Déconnexion) */
+.bw-btn-outline {
+  background: transparent;
+  border: 1px solid #111;
+  color: #111;
+}
+.bw-btn-outline:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+/* bouton fantôme (Mes matchs) */
+.bw-btn-ghost {
+  background: rgba(0,0,0,0.12);
+  border: 1px solid transparent;
+  color: #fff;
+}
+.bw-btn-ghost:hover {
+  background: rgba(0,0,0,0.22);
+}
+
+/* toggler mobile */
+.navbar-toggler {
+  padding: 0.25rem 0.5rem;
+}
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+
 
     /* Liens */
     a { color: var(--orange); }
@@ -69,63 +158,84 @@
   </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg mb-4">
-  <div class="container">
-    <img src="@Url.Content("~/images/logo.png")" alt="BasketWorld Logo" style="height:60px; margin-right:10px;" />
-    <a class="navbar-brand" asp-controller="Home" asp-action="Index">BasketWorld</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div id="nav" class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-            <a class="nav-link"
-              asp-area=""
-              asp-controller="Home"
-              asp-action="Index">Accueil</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link"
-              asp-area=""
-              asp-controller="Leagues"
-              asp-action="Details"
-              asp-route-name="NBA">NBA</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link"
-              asp-area=""
-              asp-controller="Leagues"
-              asp-action="Details"
-              asp-route-name="EuroLeague">EuroLeague</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link"
-              asp-area=""
-              asp-controller="Shop"
-              asp-action="Index">Boutique</a>
-        </li>
-      </ul>
-      <ul class="navbar-nav">
-        @if (SignInManager.IsSignedIn(User))
-        {
-            var me = await UserManager.GetUserAsync(User);
-            <li class="nav-item"><span class="navbar-text me-3">💰 @me?.Coins coin(s)</span></li>
-            <li class="nav-item"><a class="nav-link" asp-controller="Games" asp-action="Mine">Mes matchs</a></li>
-            <li class="nav-item">
-                <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-outline-light btn-sm">Se déconnecter</button>
-                </form>
-            </li>
-        }
-        else
-        {
-            <li class="nav-item me-2"><a class="btn btn-outline-light btn-sm" asp-area="Identity" asp-page="/Account/Login">Connexion</a></li>
-            <li class="nav-item"><a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Register">Créer un compte</a></li>
-        }
-      </ul>
+<nav class="navbar navbar-expand-lg navbar-dark bw-navbar mb-4">
+    <div class="container">
+        <div class="d-flex align-items-center">
+            <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                <img src="@Url.Content("~/images/logo.png")" alt="BasketWorld Logo"
+                     class="bw-logo me-2" />
+                <span class="fw-bold">BasketWorld</span>
+            </a>
+        </div>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div id="nav" class="collapse navbar-collapse">
+            <ul class="navbar-nav mx-auto bw-nav-links">
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Leagues" asp-action="Details" asp-route-name="NBA">NBA</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Leagues" asp-action="Details" asp-route-name="EuroLeague">EuroLeague</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Shop" asp-action="Index">Boutique</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav align-items-center bw-user-area">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    @* 🔐 BOUTON ADMIN *@
+                    @if (User.IsInRole("admin"))
+                    {
+                        <li class="nav-item me-2">
+                            <a class="btn btn-dark btn-sm fw-semibold"
+                              asp-area="Admin"
+                              asp-controller="Dashboard"
+                              asp-action="Index">
+                                🛠 Admin
+                            </a>
+                        </li>
+                    }
+                    var me = await UserManager.GetUserAsync(User);
+                    <li class="nav-item me-3">
+                        <span class="bw-coins-badge">
+                            💰 @me?.Coins coin(s)
+                        </span>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="btn bw-btn-ghost" asp-area="" asp-controller="Games" asp-action="Mine">
+                            Mes matchs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline">
+                            <button type="submit" class="btn bw-btn-outline">
+                                Se déconnecter
+                            </button>
+                        </form>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item me-2">
+                        <a class="btn bw-btn-outline" asp-area="Identity" asp-page="/Account/Login">Connexion</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn bw-btn-solid" asp-area="Identity" asp-page="/Account/Register">Créer un compte</a>
+                    </li>
+                }
+            </ul>
+        </div>
     </div>
-  </div>
 </nav>
+
 
 <main class="container">
   @RenderBody()

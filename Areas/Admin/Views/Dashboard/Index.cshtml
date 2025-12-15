@@ -1,113 +1,480 @@
 @using BasketWorld.Models
 @model IEnumerable<Game>
 @{
-    ViewData["Title"] = "Dashboard Admin";
+    ViewData["Title"] = "Admin Dashboard";
+    string ShortTeamName(string? raw)
+    {
+      if (string.IsNullOrWhiteSpace(raw)) return "";
+
+      return raw.ToUpperInvariant() switch
+      {
+          "ANADOLU EFES ISTANBUL" => "Anadolu",
+          "AS MONACO" => "Monaco",
+          "KOSNER BASKONIA VITORIA-GASTEIZ" => "Baskonia",
+          "FC BAYERN MUNICH" => "Bayern",
+          "ZALGIRIS KAUNAS" => "Zalgiris",
+          "FC BARCELONA" => "Barcelona",
+          "DUBAI BASKETBALL" => "Dubai",
+          "FENERBAHCE BEKO ISTANBUL" => "Fenerbahce",
+          "HAPOEL IBI TEL AVIV" => "Hapoel",
+          "PARTIZAN MOZZART BET BELGRADE" => "Partizan",
+          "LDLC ASVEL VILLEURBANNE" => "ASVEL",
+          "MACCABI RAPYD TEL AVIV" => "Maccabi",
+          "EA7 EMPORIO ARMANI MILAN" => "Milano", // ou "Olimpia Milano"
+          "OLYMPIACOS PIRAEUS" => "Olympiacos",
+          "PANATHINAIKOS AKTOR ATHENS" => "Panathinaikos",
+          "CRVENA ZVEZDA MERIDIANBET BELGRADE" => "Crvena",
+          "PARIS BASKETBALL" => "Paris",
+          "REAL MADRID" => "Real Madrid",
+          "VALENCIA BASKET" => "Valencia",
+          "VIRTUS BOLOGNA" => "Bologna",
+          "MERIDIANS" => "Meridians",
+          _ => raw
+      };
+    }
 }
 
-<h1 class="mb-4">Dashboard Admin</h1>
+<div class="admin-page">
 
-@if (TempData["err"] != null)
-{
-    <div class="alert alert-danger">@TempData["err"]</div>
-}
-@if (TempData["msg"] != null)
-{
-    <div class="alert alert-success">@TempData["msg"]</div>
-}
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">Dashboard Admin</h1>
+            <p class="admin-subtitle">Synchronisation des ligues + contrôle rapide des matchs en base.</p>
+        </div>
+    </header>
 
-<div class="d-flex gap-2 mb-3">
-  <!-- Utilise exactement la fenêtre -->
-  <a class="btn btn-warning"
-     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
-     asp-route-mode="exact">Sync NBA (rapide)</a>
+    @if (TempData["err"] != null)
+    {
+        <div class="notice notice-danger">
+            <div class="notice-title">Erreur</div>
+            <div class="notice-text">@TempData["err"]</div>
+        </div>
+    }
+    @if (TempData["msg"] != null)
+    {
+        <div class="notice notice-success">
+            <div class="notice-title">OK</div>
+            <div class="notice-text">@TempData["msg"]</div>
+        </div>
+    }
 
-  <a class="btn btn-outline-warning"
-     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
-     asp-route-past="30" asp-route-next="7" asp-route-mode="exact">
-     Sync NBA (30j passés / 7j à venir)
-  </a>
+    <div class="grid">
 
-  <a class="btn btn-outline-warning"
-     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
-     asp-route-past="120" asp-route-next="0" asp-route-mode="exact">
-     Sync NBA (120j passés)
-  </a>
+        <!-- NBA -->
+        <section class="cardx">
+            <div class="cardx-head">
+                <div>
+                    <h2 class="cardx-title">Synchronisation NBA</h2>
+                    <div class="cardx-desc">Balldontlie → remplissage matchs et scores si disponibles.</div>
+                </div>
+                <span class="tag tag-orange">SYNC</span>
+            </div>
 
-  <!-- Déroule plusieurs fenêtres jusqu’à trouver (et additionne) -->
-  <a class="btn btn-outline-success"
-     asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
-     asp-route-past="7" asp-route-next="7" asp-route-mode="expand" asp-route-minMatches="5">
-     Sync NBA (élargir jusqu’à ≥5 matchs)
-  </a>
-</div>
-<h2 class="mt-4">Synchronisation EuroLeague</h2>
-<div class="d-flex gap-2 mb-3">
-    <form asp-action="SyncEuroleagueTeams" method="post">
-        <button type="submit" class="btn btn-outline-primary">
-            Sync EuroLeague Teams
-        </button>
-    </form>
+            <div class="actions">
+                <a class="btnx btnx-outline"
+                   asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
+                   asp-route-past="7" asp-route-next="7" asp-route-mode="expand" asp-route-minMatches="5">
+                    Syncro NBA
+                </a>
+            </div>
+        </section>
 
-    <form asp-action="SyncEuroleagueSeason" method="post" class="d-flex gap-2">
-        <input type="text"
-            name="season"
-            value="2025"
-            class="form-control form-control-sm"
-            style="max-width: 140px;" />
-        <button type="submit" class="btn btn-outline-success btn-sm">
-            Sync Saison EuroLeague
-        </button>
-    </form>
-        <form asp-action="SyncEuroleagueOfficial" method="post" class="d-inline">
-        <input type="hidden" name="seasonCode" value="E2025" />
-        <button type="submit" class="btn btn-sm btn-primary">
-            Sync EuroLeague (API officielle)
-        </button>
-    </form>
+        <!-- EuroLeague -->
+        <section class="cardx">
+            <div class="cardx-head">
+                <div>
+                    <h2 class="cardx-title">Synchronisation EuroLeague</h2>
+                    <div class="cardx-desc">TheSportsDB + API officielle Euroleague (schedule + stats/score).</div>
+                </div>
+                <span class="tag tag-blue">EURO</span>
+            </div>
 
-</div>
+            <div class="actions">
+                <form asp-action="SyncEuroleagueTeams" method="post" class="d-inline">
+                    <button type="submit" class="btnx btnx-outline-blue">
+                        Sync Teams
+                    </button>
+                </form>
 
+                <form asp-action="SyncEuroleagueSeason" method="post" class="inline-form">
+                    <input type="text"
+                           name="season"
+                           value="2025"
+                           class="inputx"
+                           placeholder="Saison (ex: 2025)" />
+                    <button type="submit" class="btnx btnx-green">
+                        Sync Saison
+                    </button>
+                </form>
 
+                @* <form asp-action="SyncEuroleagueOfficial" method="post" class="d-inline">
+                    <input type="hidden" name="seasonCode" value="E2025" />
+                    <button type="submit" class="btnx btnx-blue">
+                        Sync API officielle (E2025)
+                    </button>
+                </form> *@
+            </div>
+        </section>
 
-<h3 class="mb-3">Derniers matchs NBA en base (source: balldontlie)</h3>
-@if (Model == null || !Model.Any())
-{
-    <div class="text-muted">Aucun match NBA trouvé en base pour le moment.</div>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-dark table-striped align-middle">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Match</th>
-                    <th>Status / Score</th>
-                </tr>
-            </thead>
-            <tbody>
+    </div>
+
+    <!-- Liste matchs -->
+    <section class="cardx mt-3">
+        <div class="cardx-head">
+            <div>
+                <h2 class="cardx-title">Derniers matchs NBA en base</h2>
+                <div class="cardx-desc">Source : <span class="muted">balldontlie</span></div>
+            </div>
+            <span class="tag tag-soft">DATA</span>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="empty">
+                <div class="empty-title">Aucun match trouvé</div>
+                <div class="empty-text">Lance un sync NBA ci-dessus pour remplir la base.</div>
+            </div>
+        }
+        else
+        {
+            <div class="games-list">
                 @foreach (var g in Model)
                 {
-                    <tr>
-                        <td>@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>@g.HomeTeam?.Name vs @g.AwayTeam?.Name</td>
-                        <td>
-                            @if (string.Equals(g.Status, "Final", StringComparison.OrdinalIgnoreCase)
-                                && g.HomeScore.HasValue && g.AwayScore.HasValue)
+                    var isFinal = string.Equals(g.Status, "Final", StringComparison.OrdinalIgnoreCase)
+                                  && g.HomeScore.HasValue && g.AwayScore.HasValue;
+
+                    var homeName = ShortTeamName(g.HomeTeam.Name) ?? "Home";
+                    var awayName = ShortTeamName(g.AwayTeam?.Name) ?? "Away";
+                    var homeLogo = Url.Content(g.HomeTeam?.LogoUrl ?? "~/images/logos/default.png");
+                    var awayLogo = Url.Content(g.AwayTeam?.LogoUrl ?? "~/images/logos/default.png");
+
+                    <div class="game-row">
+                        <div class="game-date">
+                            <div class="date-main">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                            <div class="date-sub">@g.StartAt.ToLocalTime().ToString("HH:mm")</div>
+                        </div>
+
+                        <div class="game-match">
+                            <div class="teamline">
+                                <img class="tiny-logo" src="@homeLogo"
+                                     onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+                                <span class="teamname" title="@g.HomeTeam?.Name">@homeName</span>
+                            </div>
+
+                            <div class="vs">vs</div>
+
+                            <div class="teamline right">
+                                <span class="teamname" title="@g.AwayTeam?.Name">@awayName</span>
+                                <img class="tiny-logo" src="@awayLogo"
+                                     onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+                            </div>
+                        </div>
+
+                        <div class="game-status">
+                            @if (isFinal)
                             {
-                                <span class="badge text-bg-secondary">Final</span>
-                                <span class="ms-2 fw-semibold">@g.HomeScore - @g.AwayScore</span>
+                                <span class="status status-final">Final</span>
+                                <span class="score">@g.HomeScore - @g.AwayScore</span>
                             }
                             else
                             {
-                                <span class="badge text-bg-warning">
+                                <span class="status status-upcoming">
                                     @(string.IsNullOrWhiteSpace(g.Status) ? "Scheduled" : g.Status)
                                 </span>
                             }
-                            </td>
-                    </tr>
+                        </div>
+                    </div>
                 }
-            </tbody>
-        </table>
-    </div>
-}
+            </div>
+        }
+    </section>
+</div>
+
+<style>
+    :root { --orange: var(--orange, #ff8c00); }
+
+    .admin-page{
+        padding: 1.25rem 0 2rem;
+        color: #f8f9fa;
+    }
+
+    .admin-header{
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .admin-title{
+        font-weight: 900;
+        letter-spacing: .02em;
+        margin:0;
+        color: #fff;
+    }
+
+    .admin-subtitle{
+        margin:.35rem 0 0;
+        color: rgba(249,250,251,.78);
+    }
+
+    .admin-badges{ display:flex; gap:.5rem; flex-wrap:wrap; }
+
+    .pill{
+        padding:.35rem .75rem;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,.12);
+        background: rgba(15,23,42,.55);
+        font-weight: 800;
+        font-size:.78rem;
+        letter-spacing:.06em;
+        text-transform: uppercase;
+        color: rgba(249,250,251,.9);
+    }
+    .pill-soft{ border-color: rgba(255,140,0,.25); background: rgba(255,140,0,.10); color:#ffd6a5; }
+
+    .grid{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .cardx{
+        border-radius: 1.25rem;
+        overflow:hidden;
+        background: #0b1120;
+        border: 1px solid rgba(255,255,255,.08);
+        box-shadow: 0 14px 30px rgba(0,0,0,.25);
+    }
+
+    .cardx-head{
+        padding: 1.1rem 1.2rem;
+        background: linear-gradient(135deg, #111827, #0b1220 55%, #1f2937);
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:1rem;
+        position:relative;
+    }
+    .cardx-head::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background-image:
+            radial-gradient(circle at 10% 10%, rgba(255,140,0,.18) 0, transparent 55%),
+            radial-gradient(circle at 85% 90%, rgba(59,130,246,.16) 0, transparent 55%);
+        opacity:.9;
+        pointer-events:none;
+    }
+    .cardx-head > *{ position:relative; z-index:1; }
+
+    .cardx-title{ margin:0; font-weight:900; color:#fff; }
+    .cardx-desc{ margin-top:.25rem; color: rgba(249,250,251,.75); }
+
+    .tag{
+        border-radius:999px;
+        padding:.35rem .7rem;
+        font-weight:900;
+        font-size:.75rem;
+        letter-spacing:.08em;
+        text-transform: uppercase;
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(15,23,42,.55);
+        color: rgba(249,250,251,.85);
+        white-space:nowrap;
+    }
+    .tag-orange{ border-color: rgba(255,140,0,.30); background: rgba(255,140,0,.12); color:#ffd6a5; }
+    .tag-blue{ border-color: rgba(59,130,246,.30); background: rgba(59,130,246,.12); color:#bfdbfe; }
+    .tag-soft{ border-color: rgba(148,163,184,.25); background: rgba(148,163,184,.10); color: rgba(249,250,251,.85); }
+
+    .actions{
+        padding: 1rem 1.2rem 1.2rem;
+        display:flex;
+        flex-wrap:wrap;
+        gap: .6rem;
+        align-items:center;
+    }
+
+    .btnx{
+        border-radius: 999px;
+        padding: .65rem .95rem;
+        font-weight: 900;
+        letter-spacing:.04em;
+        text-transform: uppercase;
+        font-size: .78rem;
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(15,23,42,.35);
+        color: rgba(249,250,251,.9);
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        gap:.5rem;
+    }
+    .btnx:hover{ filter: brightness(1.05); color:#fff; }
+
+    .btnx-orange{ background: var(--orange); border-color: var(--orange); color:#111; }
+    .btnx-orange:hover{ color:#111; }
+
+    .btnx-green{ background:#10b981; border-color:#10b981; color:#062016; }
+    .btnx-green:hover{ color:#062016; }
+
+    .btnx-blue{ background:#2563eb; border-color:#2563eb; color:#fff; }
+    .btnx-blue:hover{ color:#fff; }
+
+    .btnx-outline{
+        background: transparent;
+        border-color: rgba(255,140,0,.45);
+        color:#ffd6a5;
+    }
+    .btnx-outline:hover{ background: rgba(255,140,0,.10); }
+
+    .btnx-outline-blue{
+        background: transparent;
+        border-color: rgba(59,130,246,.45);
+        color:#bfdbfe;
+    }
+    .btnx-outline-blue:hover{ background: rgba(59,130,246,.10); }
+
+    .inline-form{
+        display:flex;
+        gap:.5rem;
+        align-items:center;
+        flex-wrap:wrap;
+    }
+
+    .inputx{
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        color:#fff;
+        border-radius: 999px;
+        padding: .6rem .9rem;
+        width: 160px;
+        outline:none;
+    }
+
+    .muted{ color: rgba(249,250,251,.7); }
+
+    .notice{
+        border-radius: 1rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid rgba(255,255,255,.08);
+        margin-bottom: 1rem;
+        background: rgba(15,23,42,.55);
+    }
+    .notice-title{ font-weight: 900; margin-bottom:.2rem; }
+    .notice-text{ color: rgba(249,250,251,.82); }
+
+    .notice-danger{ border-color: rgba(239,68,68,.25); background: rgba(239,68,68,.10); }
+    .notice-success{ border-color: rgba(16,185,129,.25); background: rgba(16,185,129,.10); }
+
+    .empty{
+        padding: 1.25rem 1.2rem 1.35rem;
+        color: rgba(249,250,251,.85);
+    }
+    .empty-title{ font-weight: 900; margin-bottom:.25rem; }
+    .empty-text{ color: rgba(249,250,251,.70); }
+
+    /* Games list */
+    .games-list{ padding: .75rem 1.0rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+
+    .game-row{
+        display:grid;
+        grid-template-columns: 140px 1fr 220px;
+        gap: 1rem;
+        align-items:center;
+        padding: .85rem 1rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255,255,255,.08);
+        background: rgba(15,23,42,.35);
+    }
+
+    .game-date .date-main{ font-weight: 900; }
+    .game-date .date-sub{ color: rgba(249,250,251,.65); font-size: .9rem; }
+
+    .game-match{
+        display:grid;
+        grid-template-columns: 1fr 40px 1fr;
+        align-items:center;
+        gap: .5rem;
+        min-width:0;
+    }
+
+    .teamline{
+        display:flex;
+        align-items:center;
+        gap:.6rem;
+        min-width:0;
+    }
+    .teamline.right{ justify-content:flex-end; text-align:right; }
+
+    .tiny-logo{
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        border-radius: .7rem;
+        padding:.35rem;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .teamname{
+        font-weight: 900;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        max-width: 100%;
+    }
+
+    .vs{
+        text-align:center;
+        color: rgba(249,250,251,.55);
+        font-weight: 900;
+        letter-spacing:.2em;
+    }
+
+    .game-status{
+        display:flex;
+        justify-content:flex-end;
+        gap:.6rem;
+        align-items:center;
+        white-space:nowrap;
+    }
+
+    .status{
+        padding: .25rem .65rem;
+        border-radius: 999px;
+        font-size: .8rem;
+        font-weight: 900;
+        border: 1px solid rgba(255,255,255,.10);
+        background: rgba(148,163,184,.10);
+        color: rgba(249,250,251,.85);
+    }
+    .status-final{
+        background: rgba(16,185,129,.12);
+        border-color: rgba(16,185,129,.30);
+        color: #bbf7d0;
+    }
+    .status-upcoming{
+        background: rgba(255,140,0,.10);
+        border-color: rgba(255,140,0,.25);
+        color: #ffd6a5;
+    }
+
+    .score{ font-weight: 950; font-size: 1.05rem; color:#fff; }
+
+    @@media (max-width: 1100px){
+        .grid{ grid-template-columns: 1fr; }
+        .game-row{ grid-template-columns: 120px 1fr; }
+        .game-status{ grid-column: 1 / -1; justify-content:flex-start; }
+    }
+
+    @@media (max-width: 650px){
+        .admin-header{ flex-direction:column; align-items:flex-start; }
+        .game-row{ grid-template-columns: 1fr; }
+        .game-status{ justify-content:flex-start; }
+        .game-match{ grid-template-columns: 1fr; }
+        .teamline.right{ justify-content:flex-start; text-align:left; }
+        .vs{ display:none; }
+    }
+</style>

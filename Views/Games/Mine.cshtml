@@ -1,53 +1,420 @@
 @* Views/Games/Mine.cshtml *@
+@using BasketWorld.Models
 @{
+    ViewData["Title"] = "Mes matchs";
     var upcoming = (IEnumerable<Game>)(ViewBag.Upcoming ?? Enumerable.Empty<Game>());
     var past = (IEnumerable<Game>)(ViewBag.Past ?? Enumerable.Empty<Game>());
-}
-<h1 class="mb-3">Mes matchs</h1>
 
-<h3 class="mt-4">À venir</h3>
-@if (!upcoming.Any())
-{
-    <div class="text-muted">Aucun match réservé à venir.</div>
-}
-else
-{
-    <div class="row g-3">
-    @foreach (var g in upcoming)
+    string ShortName(Team t)
     {
-        <div class="col-md-6">
-          <div class="card bg-dark text-white border border-warning p-3 h-100">
-            <div><strong>@g.HomeTeam.Name</strong> <span class="text-secondary">vs</span> <strong>@g.AwayTeam.Name</strong></div>
-            <div class="text-secondary">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.League.Name</div>
-            <div class="mt-2">
-              <a class="btn btn-outline-success disabled" aria-disabled="true">Regarder (bientôt)</a>
-              <a class="btn btn-sm btn-secondary ms-2" asp-action="Details" asp-route-id="@g.Id">Détails</a>
-            </div>
-          </div>
-        </div>
+        // optionnel: raccourcir certains noms trop longs
+        var n = (t?.Name ?? "").Trim();
+        if (string.Equals(n, "EA7 EMPORIO ARMANI MILAN", StringComparison.OrdinalIgnoreCase)) return "EA7 MILAN";
+        return n;
     }
-    </div>
 }
 
-<h3 class="mt-4">Déjà diffusés</h3>
-@if (!past.Any())
-{
-    <div class="text-muted">Aucun match passé.</div>
-}
-else
-{
-    <div class="row g-3">
-    @foreach (var g in past)
-    {
-        <div class="col-md-6">
-          <div class="card bg-dark text-white border border-warning p-3 h-100">
-            <div><strong>@g.HomeTeam.Name</strong> <span class="text-secondary">vs</span> <strong>@g.AwayTeam.Name</strong></div>
-            <div class="text-secondary">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") — @g.League.Name</div>
-            <div class="mt-2">
-              <a class="btn btn-sm btn-success" asp-action="Watch" asp-route-id="@g.Id">Regarder</a>
-            </div>
-          </div>
+<div class="bw-page">
+    <div class="bw-header mb-4">
+        <div>
+            <h1 class="bw-title">Mes matchs</h1>
+            <p class="bw-subtitle">Retrouve tes réservations et accède à la diffusion quand elle est disponible.</p>
         </div>
-    }
+        <div class="bw-chip">
+            <span class="dot"></span>
+            <span>@upcoming.Count() à venir • @past.Count() passés</span>
+        </div>
     </div>
-}
+
+    <div class="row g-4">
+        <!-- UPCOMING -->
+        <div class="col-lg-6">
+            <div class="bw-section">
+                <div class="bw-section-head">
+                    <h2 class="bw-section-title">À venir</h2>
+                    <span class="bw-badge">@upcoming.Count()</span>
+                </div>
+
+                @if (!upcoming.Any())
+                {
+                    <div class="bw-empty">
+                        <div class="bw-empty-icon">🗓️</div>
+                        <div>
+                            <div class="bw-empty-title">Aucun match réservé à venir</div>
+                            <div class="bw-empty-text">Va sur NBA / EuroLeague et réserve ton prochain match (1 coin).</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-grid gap-3">
+                        @foreach (var g in upcoming.OrderBy(x => x.StartAt))
+                        {
+                            <div class="bw-card">
+                                <div class="bw-card-top">
+                                    <div class="bw-logos">
+                                        <img class="bw-logo"
+                                             src="@(Url.Content(g.HomeTeam?.LogoUrl ?? "~/images/logos/default.png"))"
+                                             alt="@g.HomeTeam?.Name"
+                                             onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+                                        <span class="bw-vs">VS</span>
+                                        <img class="bw-logo"
+                                             src="@(Url.Content(g.AwayTeam?.LogoUrl ?? "~/images/logos/default.png"))"
+                                             alt="@g.AwayTeam?.Name"
+                                             onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+                                    </div>
+
+                                    <div class="bw-match">
+                                        <div class="bw-teams">
+                                            <span class="bw-team">@ShortName(g.HomeTeam)</span>
+                                            <span class="bw-sep">•</span>
+                                            <span class="bw-team">@ShortName(g.AwayTeam)</span>
+                                        </div>
+                                        <div class="bw-meta">
+                                            <span class="bw-pill">@g.League?.Name</span>
+                                            <span class="bw-meta-sep">—</span>
+                                            <span class="bw-date">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(g.Venue))
+                                        {
+                                            <div class="bw-venue">📍 @g.Venue</div>
+                                        }
+                                    </div>
+
+                                    <div class="bw-status">
+                                        <span class="bw-status-badge upcoming">Bientôt</span>
+                                    </div>
+                                </div>
+
+                                <div class="bw-actions">
+                                    <button class="btn btn-outline-secondary btn-sm" disabled>Regarder (bientôt)</button>
+                                    <a class="btn btn-outline-warning btn-sm"
+                                       asp-action="Details" asp-route-id="@g.Id">
+                                        Détails
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- PAST -->
+        <div class="col-lg-6">
+            <div class="bw-section">
+                <div class="bw-section-head">
+                    <h2 class="bw-section-title">Déjà diffusés</h2>
+                    <span class="bw-badge">@past.Count()</span>
+                </div>
+
+                @if (!past.Any())
+                {
+                    <div class="bw-empty">
+                        <div class="bw-empty-icon">✅</div>
+                        <div>
+                            <div class="bw-empty-title">Aucun match passé</div>
+                            <div class="bw-empty-text">Dès qu’un match est diffusé, tu pourras le regarder ici.</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-grid gap-3">
+                        @foreach (var g in past.OrderByDescending(x => x.StartAt))
+                        {
+                            <div class="bw-card">
+                                <div class="bw-card-top">
+                                    <div class="bw-logos">
+                                        <img class="bw-logo"
+                                             src="@(Url.Content(g.HomeTeam?.LogoUrl ?? "~/images/logos/default.png"))"
+                                             alt="@g.HomeTeam?.Name"
+                                             onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+                                        <span class="bw-vs">VS</span>
+                                        <img class="bw-logo"
+                                             src="@(Url.Content(g.AwayTeam?.LogoUrl ?? "~/images/logos/default.png"))"
+                                             alt="@g.AwayTeam?.Name"
+                                             onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
+                                    </div>
+
+                                    <div class="bw-match">
+                                        <div class="bw-teams">
+                                            <span class="bw-team">@ShortName(g.HomeTeam)</span>
+                                            <span class="bw-sep">•</span>
+                                            <span class="bw-team">@ShortName(g.AwayTeam)</span>
+                                        </div>
+
+                                        <div class="bw-meta">
+                                            <span class="bw-pill">@g.League?.Name</span>
+                                            <span class="bw-meta-sep">—</span>
+                                            <span class="bw-date">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+
+                                        @if (string.Equals(g.Status, "Final", StringComparison.OrdinalIgnoreCase) && g.HomeScore.HasValue && g.AwayScore.HasValue)
+                                        {
+                                            <div class="bw-score">
+                                                <span class="score">@g.HomeScore</span>
+                                                <span class="dash">-</span>
+                                                <span class="score">@g.AwayScore</span>
+                                                <span class="final">Final</span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="bw-status">
+                                        <span class="bw-status-badge past">Disponible</span>
+                                    </div>
+                                </div>
+
+                                <div class="bw-actions">
+                                    <a class="btn btn-success btn-sm"
+                                       asp-action="Watch" asp-route-id="@g.Id">
+                                        ▶ Regarder
+                                    </a>
+                                    <a class="btn btn-outline-warning btn-sm"
+                                       asp-action="Details" asp-route-id="@g.Id">
+                                        Détails
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bw-page { padding: 0.5rem 0 2rem; }
+
+    .bw-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-end;
+        gap:1rem;
+        padding:1.25rem 1.25rem;
+        border-radius: 1.25rem;
+        background: linear-gradient(135deg, #0b1120, #101827 55%, #0b1120);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: #f8fafc;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .bw-title{
+        margin:0;
+        font-weight:800;
+        letter-spacing:.02em;
+        color: var(--orange, #ff8c00);
+    }
+    .bw-subtitle{
+        margin:.35rem 0 0;
+        color: rgba(248,250,252,0.75);
+        max-width: 52ch;
+        font-size:.95rem;
+    }
+
+    .bw-chip{
+        display:flex;
+        align-items:center;
+        gap:.6rem;
+        padding:.55rem .9rem;
+        border-radius:999px;
+        background: rgba(15,23,42,0.8);
+        border: 1px solid rgba(255,255,255,0.10);
+        color: rgba(248,250,252,0.85);
+        font-weight:600;
+        white-space:nowrap;
+    }
+    .bw-chip .dot{
+        width:10px;height:10px;border-radius:999px;
+        background: var(--orange, #ff8c00);
+        box-shadow: 0 0 0 4px rgba(255,140,0,0.15);
+    }
+
+    .bw-section{
+        border-radius: 1.25rem;
+        background: rgba(11,17,32,0.9);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 1.1rem;
+        color: #f8fafc;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.20);
+        height: 100%;
+    }
+    .bw-section-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin-bottom: 0.9rem;
+    }
+    .bw-section-title{
+        margin:0;
+        font-size:1.1rem;
+        font-weight:800;
+        color: rgba(248,250,252,0.92);
+    }
+    .bw-badge{
+        background: rgba(255,140,0,0.14);
+        border: 1px solid rgba(255,140,0,0.35);
+        color: var(--orange, #ff8c00);
+        font-weight:800;
+        padding:.2rem .55rem;
+        border-radius:999px;
+        font-size:.85rem;
+    }
+
+    .bw-empty{
+        display:flex;
+        gap: 0.9rem;
+        align-items:flex-start;
+        padding: 1rem;
+        border-radius: 1rem;
+        background: rgba(15,23,42,0.75);
+        border: 1px dashed rgba(255,255,255,0.14);
+        color: rgba(248,250,252,0.85);
+    }
+    .bw-empty-icon{ font-size: 1.6rem; line-height:1; margin-top:.1rem; }
+    .bw-empty-title{ font-weight:800; color:#f8fafc; }
+    .bw-empty-text{ color: rgba(248,250,252,0.70); font-size:.92rem; margin-top:.15rem; }
+
+    .bw-card{
+        border-radius: 1.1rem;
+        background: linear-gradient(180deg, rgba(16,24,39,0.95), rgba(11,17,32,0.95));
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 0.95rem;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.20);
+    }
+
+    .bw-card-top{
+        display:grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 0.9rem;
+        align-items:center;
+    }
+
+    .bw-logos{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:.6rem;
+    }
+    .bw-logo{
+        width:44px;height:44px;
+        object-fit:contain;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 12px;
+        padding: 6px;
+    }
+    .bw-vs{
+        font-size:.75rem;
+        font-weight:900;
+        letter-spacing:.12em;
+        color: rgba(248,250,252,0.55);
+    }
+
+    .bw-teams{
+        font-weight:900;
+        color:#f8fafc;
+        line-height:1.2;
+        display:flex;
+        flex-wrap:wrap;
+        gap:.45rem;
+        align-items:baseline;
+    }
+    .bw-team{ font-size: 1.02rem; }
+    .bw-sep{ color: rgba(248,250,252,0.35); font-weight:700; }
+
+    .bw-meta{
+        margin-top:.35rem;
+        display:flex;
+        flex-wrap:wrap;
+        gap:.5rem;
+        align-items:center;
+        color: rgba(248,250,252,0.70);
+        font-size: .9rem;
+    }
+    .bw-pill{
+        display:inline-flex;
+        align-items:center;
+        padding:.18rem .55rem;
+        border-radius:999px;
+        background: rgba(59,130,246,0.12);
+        border: 1px solid rgba(59,130,246,0.25);
+        color: rgba(191,219,254,0.95);
+        font-weight:800;
+        font-size:.82rem;
+    }
+    .bw-meta-sep{ color: rgba(248,250,252,0.35); }
+    .bw-date{ font-weight:700; }
+
+    .bw-venue{
+        margin-top:.35rem;
+        color: rgba(248,250,252,0.62);
+        font-size: .88rem;
+    }
+
+    .bw-status{ text-align:right; }
+    .bw-status-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:.35rem;
+        padding:.3rem .6rem;
+        border-radius:999px;
+        font-weight:900;
+        font-size:.82rem;
+        letter-spacing:.02em;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(15,23,42,0.7);
+        color: rgba(248,250,252,0.85);
+    }
+    .bw-status-badge.upcoming{
+        border-color: rgba(255,140,0,0.35);
+        color: var(--orange, #ff8c00);
+        background: rgba(255,140,0,0.10);
+    }
+    .bw-status-badge.past{
+        border-color: rgba(34,197,94,0.35);
+        color: rgba(34,197,94,0.95);
+        background: rgba(34,197,94,0.10);
+    }
+
+    .bw-score{
+        margin-top:.4rem;
+        display:flex;
+        align-items:center;
+        gap:.35rem;
+        font-weight:900;
+        color:#f8fafc;
+    }
+    .bw-score .score{ font-size: 1.05rem; }
+    .bw-score .dash{ opacity:.5; }
+    .bw-score .final{
+        margin-left:.4rem;
+        font-size:.8rem;
+        padding:.15rem .5rem;
+        border-radius:999px;
+        background: rgba(148,163,184,0.18);
+        border: 1px solid rgba(148,163,184,0.25);
+        color: rgba(248,250,252,0.80);
+        font-weight:800;
+    }
+
+    .bw-actions{
+        display:flex;
+        gap:.5rem;
+        justify-content:flex-end;
+        margin-top: .85rem;
+        padding-top: .75rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    @@media (max-width: 640px){
+        .bw-card-top{
+            grid-template-columns: 1fr;
+            text-align:left;
+        }
+        .bw-status{ text-align:left; }
+        .bw-actions{ justify-content:flex-start; flex-wrap:wrap; }
+        .bw-logos{ justify-content:flex-start; }
+    }
+</style>
