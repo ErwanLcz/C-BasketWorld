@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BasketWorld.Migrations
 {
     /// <inheritdoc />
-    public partial class AddCoinsVideoAndGameAccess : Migration
+    public partial class AddcréditsVideoAndGameAccess : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "Coins",
+                name: "crédits",
                 table: "AspNetUsers",
                 type: "INTEGER",
                 nullable: false,
@@ -64,7 +64,7 @@ namespace BasketWorld.Migrations
                 name: "GameAccesses");
 
             migrationBuilder.DropColumn(
-                name: "Coins",
+                name: "crédits",
                 table: "AspNetUsers");
         }
     }

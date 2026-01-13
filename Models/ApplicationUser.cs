@@ -6,7 +6,7 @@ namespace BasketWorld.Models
     {
         public string? FullName { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public int Coins { get; set; } = 10;
+        public int crédits { get; set; } = 10;
 
     }
 }

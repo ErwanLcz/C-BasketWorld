@@ -3,58 +3,265 @@
     ViewData["Title"] = "Paiement";
 }
 
-<h1 class="mb-4 text-warning">Paiement sécurisé (simulation)</h1>
+<div class="checkout-wrapper">
 
-<div class="row">
-  <div class="col-md-6">
-    <div class="card p-3">
-      <h4 class="mb-3">Récapitulatif</h4>
-      <p class="mb-1">Produit : <strong>@Model.ProductLabel</strong></p>
-      <p class="text-muted">Simulation : vous pouvez saisir n'importe quels numéros.</p>
+    <!-- Header -->
+    <div class="checkout-header text-center mb-5">
+        <h1 class="checkout-title">
+            Paiement <span class="accent">sécurisé</span> (simulation)
+        </h1>
+        <p class="checkout-subtitle">
+            Aucun paiement réel. Tu peux saisir n’importe quelles infos de carte.
+        </p>
     </div>
-  </div>
 
-  <div class="col-md-6">
-    <div class="card p-3">
-      <h4 class="mb-3">Informations de carte (FAUSSES ACCEPTÉES)</h4>
+    <div class="row g-4 justify-content-center">
 
-      <form method="post" asp-action="Pay">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="Amount" value="@Model.Amount" />
+        <!-- Récap -->
+        <div class="col-lg-5">
+            <div class="checkout-card h-100">
+                <div class="checkout-card-header">
+                    <h3 class="mb-0">Récapitulatif</h3>
+                </div>
 
-        <div class="mb-3">
-          <label class="form-label">Titulaire</label>
-          <input name="Cardholder" class="form-control" placeholder="Ex: John Doe" required />
+                <div class="checkout-card-body">
+                    <div class="recap-pill mb-3">
+                        <span class="muted">Produit</span>
+                        <span class="strong">@Model.ProductLabel</span>
+                    </div>
+
+                    <div class="recap-amount">
+                        <div class="coins">@Model.Coins <span>coins</span></div>
+                        <div class="muted">Crédits ajoutés après validation</div>
+                    </div>
+
+                    <hr class="divider" />
+
+                    <ul class="recap-features">
+                        <li>✔ Ajout instantané dans ton compte</li>
+                        <li>✔ Utilisable sur NBA & EuroLeague</li>
+                        <li>✔ Simulation : aucune donnée stockée</li>
+                    </ul>
+
+                    <div class="note mt-4">
+                        Astuce : pour tester, mets <span class="kbd">4242 4242 4242 4242</span>.
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Numéro de carte</label>
-          <input name="CardNumber" class="form-control" placeholder="4242 4242 4242 4242" inputmode="numeric" />
+        <!-- Form carte -->
+        <div class="col-lg-7">
+            <div class="checkout-card h-100">
+                <div class="checkout-card-header">
+                    <h3 class="mb-0">Informations de carte</h3>
+                </div>
+
+                <div class="checkout-card-body">
+                    <form method="post" asp-action="Pay" class="checkout-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Amount" value="@Model.Amount" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Titulaire</label>
+                            <input name="Cardholder" class="form-control" placeholder="Ex: John Doe" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Numéro de carte</label>
+                            <input name="CardNumber" class="form-control"
+                                   placeholder="4242 4242 4242 4242"
+                                   inputmode="numeric" />
+                            <div class="form-hint">Simulation : aucune vérification bancaire réelle.</div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <label class="form-label">Mois</label>
+                                <input name="ExpMonth" class="form-control" placeholder="MM" maxlength="2" />
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">Année</label>
+                                <input name="ExpYear" class="form-control" placeholder="YY" maxlength="2" />
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">CVC</label>
+                                <input name="Cvc" class="form-control" placeholder="123" maxlength="4" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100 fw-bold pay-btn">
+                            Payer et recevoir @Model.Coins coins
+                        </button>
+
+                        <div class="form-text mt-3">
+                            Simulation de paiement : aucune donnée réelle n’est transmise ni stockée.
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <a class="btn btn-outline-warning w-100"
+                               asp-controller="Shop" asp-action="Index">
+                                ⬅ Retour boutique
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <div class="row g-2 mb-3">
-          <div class="col">
-            <label class="form-label">Mois</label>
-            <input name="ExpMonth" class="form-control" placeholder="MM" maxlength="2" />
-          </div>
-          <div class="col">
-            <label class="form-label">Année</label>
-            <input name="ExpYear" class="form-control" placeholder="YY" maxlength="2" />
-          </div>
-          <div class="col">
-            <label class="form-label">CVC</label>
-            <input name="Cvc" class="form-control" placeholder="123" maxlength="4" />
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-warning w-100">
-          Payer et recevoir @Model.Amount coins
-        </button>
-
-        <div class="form-text mt-2">
-          Simulation de paiement : aucune donnée réelle n'est transmise ni stockée.
-        </div>
-      </form>
     </div>
-  </div>
 </div>
+
+<style>
+.checkout-wrapper{
+    padding: 2rem 0 3rem;
+    color: #f8f9fa;
+}
+
+.accent{ color: var(--orange, #ff8c00); }
+
+.checkout-title{
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.checkout-subtitle{
+    max-width: 700px;
+    margin: 0.75rem auto 0;
+    color: rgba(248,250,252,0.8);
+}
+
+/* Cards */
+.checkout-card{
+    background: linear-gradient(180deg, #0f172a, #020617);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+}
+
+.checkout-card-header{
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.checkout-card-header h3{
+    font-weight: 700;
+    margin: 0;
+}
+
+.checkout-card-body{
+    padding: 1.5rem;
+}
+
+/* Recap */
+.recap-pill{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(2,6,23,0.5);
+}
+
+.muted{ color: rgba(248,250,252,0.7); }
+.strong{ font-weight: 700; }
+
+.recap-amount{
+    text-align:center;
+    padding: 1rem 0 0.25rem;
+}
+
+.coins{
+    font-size: 2.6rem;
+    font-weight: 900;
+    color: var(--orange, #ff8c00);
+    line-height: 1.1;
+}
+
+.coins span{
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(248,250,252,0.7);
+}
+
+.divider{
+    margin: 1.25rem 0;
+    border-color: rgba(148,163,184,0.22);
+}
+
+.recap-features{
+    list-style:none;
+    padding:0;
+    margin:0;
+    font-size: 0.95rem;
+}
+
+.recap-features li{ margin-bottom: .45rem; }
+
+.note{
+    color: rgba(248,250,252,0.75);
+    font-size: .95rem;
+    background: rgba(255,140,0,0.08);
+    border: 1px solid rgba(255,140,0,0.18);
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+}
+
+.kbd{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background: rgba(2,6,23,0.7);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.5rem;
+    color: rgba(248,250,252,0.9);
+}
+
+/* Form */
+.checkout-form .form-label{
+    font-weight: 600;
+    color: rgba(248,250,252,0.9);
+}
+
+.checkout-form .form-control{
+    background: rgba(2,6,23,0.55);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: #fff;
+    border-radius: 0.9rem;
+    padding: 0.7rem 0.9rem;
+}
+
+.checkout-form .form-control:focus{
+    border-color: rgba(255,140,0,0.55);
+    box-shadow: 0 0 0 .2rem rgba(255,140,0,0.15);
+}
+
+.form-hint{
+    font-size: .85rem;
+    margin-top: .35rem;
+    color: rgba(248,250,252,0.65);
+}
+
+.pay-btn{
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.65rem 1rem;
+}
+
+.btn-warning{
+    background: var(--orange, #ff8c00);
+    border-color: var(--orange, #ff8c00);
+    color: #000;
+}
+
+.btn-warning:hover{ filter: brightness(1.05); }
+
+.btn-outline-warning{
+    border-radius: 999px;
+}
+
+</style>

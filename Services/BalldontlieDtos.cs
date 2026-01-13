@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BasketWorld.Services
 {
     public class BlGame
@@ -33,7 +35,7 @@ namespace BasketWorld.Services
         public BlMeta Meta { get; set; } = new();
     }
 
-    public class BlMeta
+    /*public class BlMeta
     {
         // balldontlie renvoie total_pages/current_page/next_page/per_page/total_count
         public int Total_pages { get; set; }
@@ -41,5 +43,23 @@ namespace BasketWorld.Services
         public int Next_page { get; set; }
         public int Per_page { get; set; }
         public int? Total_count { get; set; }
+    }*/
+
+    public class BlMeta
+    {
+        [JsonPropertyName("next_cursor")]
+        public int? NextCursor { get; set; }
+
+        [JsonPropertyName("per_page")]
+        public int? PerPage { get; set; }
     }
+
+    public class MetaDto
+    {
+        public int? next_cursor { get; set; }
+        public int? per_page { get; set; }
+
+        // si tu as déjà next_page/total_pages, garde-les, mais pour cursor c’est next_cursor
+    }
+
 }

@@ -31,7 +31,7 @@ builder.Services.AddHttpClient<EuroleagueOfficialClient>(client =>
     client.DefaultRequestHeaders.UserAgent.ParseAdd("BasketWorld/1.0");
 });
 builder.Services.AddScoped<EuroleagueOfficialSyncService>();
-
+builder.Services.AddScoped<StandingsService>();
 
 
 

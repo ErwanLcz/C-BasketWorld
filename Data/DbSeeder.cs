@@ -170,7 +170,7 @@ namespace BasketWorld.Data
                     UserName = "admin@basket.test",
                     Email = "admin@basket.test",
                     FullName = "Admin",
-                    Coins = 100
+                    crédits = 100
                 };
                 await userMgr.CreateAsync(admin, "Admin123!");
                 await userMgr.AddToRolesAsync(admin, new[] { "admin", "user" });

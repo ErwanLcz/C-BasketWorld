@@ -95,7 +95,6 @@
 
             <div class="meta">
                 <span class="date">@g.StartAt.ToLocalTime().ToString("dddd d MMMM yyyy HH:mm")</span>
-                @if (!string.IsNullOrWhiteSpace(g.Venue)) { <span class="venue">— @g.Venue</span> }
             </div>
 
             <a class="btn-reserve" asp-controller="Games" asp-action="Details" asp-route-id="@g.Id">Détails & Réserver</a>
@@ -151,7 +150,6 @@ else
 
                 <div class="meta">
                     <span class="date">@g.StartAt.ToLocalTime().ToString("dd'/'MM'/'yyyy")</span>
-                    @if (!string.IsNullOrWhiteSpace(g.Venue)) { <span class="venue">— @g.Venue</span> }
                 </div>
                 @* pas de bouton ici *@
             </div>

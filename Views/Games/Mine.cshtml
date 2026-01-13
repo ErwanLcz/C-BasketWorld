@@ -41,7 +41,7 @@
                         <div class="bw-empty-icon">🗓️</div>
                         <div>
                             <div class="bw-empty-title">Aucun match réservé à venir</div>
-                            <div class="bw-empty-text">Va sur NBA / EuroLeague et réserve ton prochain match (1 coin).</div>
+                            <div class="bw-empty-text">Va sur NBA / EuroLeague et réserve ton prochain match (1 Crédit).</div>
                         </div>
                     </div>
                 }
@@ -53,12 +53,12 @@
                             <div class="bw-card">
                                 <div class="bw-card-top">
                                     <div class="bw-logos">
-                                        <img class="bw-logo"
+                                        <img class="bw-logo-team"
                                              src="@(Url.Content(g.HomeTeam?.LogoUrl ?? "~/images/logos/default.png"))"
                                              alt="@g.HomeTeam?.Name"
                                              onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
                                         <span class="bw-vs">VS</span>
-                                        <img class="bw-logo"
+                                        <img class="bw-logo-team"
                                              src="@(Url.Content(g.AwayTeam?.LogoUrl ?? "~/images/logos/default.png"))"
                                              alt="@g.AwayTeam?.Name"
                                              onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
@@ -126,12 +126,12 @@
                             <div class="bw-card">
                                 <div class="bw-card-top">
                                     <div class="bw-logos">
-                                        <img class="bw-logo"
+                                        <img class="bw-logo-team"
                                              src="@(Url.Content(g.HomeTeam?.LogoUrl ?? "~/images/logos/default.png"))"
                                              alt="@g.HomeTeam?.Name"
                                              onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
                                         <span class="bw-vs">VS</span>
-                                        <img class="bw-logo"
+                                        <img class="bw-logo-team"
                                              src="@(Url.Content(g.AwayTeam?.LogoUrl ?? "~/images/logos/default.png"))"
                                              alt="@g.AwayTeam?.Name"
                                              onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
@@ -297,7 +297,7 @@
         justify-content:center;
         gap:.6rem;
     }
-    .bw-logo{
+    .bw-logo-team{
         width:44px;height:44px;
         object-fit:contain;
         background: rgba(255,255,255,0.06);

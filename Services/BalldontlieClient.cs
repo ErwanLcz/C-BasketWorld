@@ -57,7 +57,7 @@ namespace BasketWorld.Services
         }
 
         // ------- Teams -------
-        public async Task<List<BlTeam>> GetTeamsAsync()
+        /*public async Task<List<BlTeam>> GetTeamsAsync()
         {
             var all = new List<BlTeam>();
             var page = 1;
@@ -71,10 +71,34 @@ namespace BasketWorld.Services
                 page++;
             }
             return all;
+        }*/
+
+        public async Task<List<BlTeam>> GetTeamsAsync()
+        {
+            var all = new List<BlTeam>();
+            int? cursor = null;
+
+            while (true)
+            {
+                var url = $"{_base}/teams?per_page=100" + (cursor.HasValue ? $"&cursor={cursor}" : "");
+                var res = await GetJsonWithRetryAsync<BlPaginated<BlTeam>>(url);
+
+                if (res == null || res.Data.Count == 0) break;
+
+                all.AddRange(res.Data);
+
+                if (res.Meta?.NextCursor == null) break;
+                cursor = res.Meta.NextCursor;
+
+                await Task.Delay(150);
+            }
+
+            return all;
         }
 
+
         // ------- Games par fenêtre, avec dates batchées -------
-        public async Task<List<BlGame>> GetGamesByDateRangeAsync(DateTime fromUtc, DateTime toUtc)
+        /*public async Task<List<BlGame>> GetGamesByDateRangeAsync(DateTime fromUtc, DateTime toUtc)
         {
             var all = new List<BlGame>();
 
@@ -105,7 +129,41 @@ namespace BasketWorld.Services
             }
 
             return all;
+        }*/
+
+        public async Task<List<BlGame>> GetGamesByDateRangeAsync(DateTime fromUtc, DateTime toUtc)
+        {
+            var all = new List<BlGame>();
+
+            var start = fromUtc.Date.ToString("yyyy-MM-dd");
+            var end   = toUtc.Date.ToString("yyyy-MM-dd");
+
+            // ⚠️ NBA "season" = année de début de saison (ex: 2025 pour saison 2025-26)
+            // Donc si tu sync Oct 2025 -> Juin 2026, season doit être 2025 (PAS 2026)
+            var season = fromUtc.Month >= 7 ? fromUtc.Year : fromUtc.Year - 1;
+
+            int? cursor = null;
+            while (true)
+            {
+                var url =
+                    $"{_base}/games?start_date={start}&end_date={end}" +
+                    $"&seasons[]={season}&per_page=100" +
+                    (cursor.HasValue ? $"&cursor={cursor}" : "");
+
+                var res = await GetJsonWithRetryAsync<BlPaginated<BlGame>>(url);
+                if (res == null || res.Data.Count == 0) break;
+
+                all.AddRange(res.Data);
+
+                if (res.Meta?.NextCursor == null) break;
+                cursor = res.Meta.NextCursor;
+
+                await Task.Delay(200);
+            }
+
+            return all;
         }
+
 
     }
 }

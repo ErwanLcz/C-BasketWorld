@@ -2,48 +2,235 @@
     ViewData["Title"] = "Boutique";
 }
 
-<h1 class="mb-4 text-warning">🛒 Boutique de Coins</h1>
+<div class="shop-wrapper">
 
-@if (TempData["ok"] != null)
-{
-    <div class="alert alert-success">@TempData["ok"]</div>
-}
-@if (TempData["err"] != null)
-{
-    <div class="alert alert-danger">@TempData["err"]</div>
-}
-
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card text-center p-3">
-            <h4>Pack Débutant</h4>
-            <p class="text-secondary">10 coins</p>
-            <form method="get" asp-controller="Checkout" asp-action="Start">
-                <input type="hidden" name="amount" value="10" />
-                <button type="submit" class="btn btn-warning">Acheter 10 coins</button>
-            </form>
-        </div>
+    <!-- Header -->
+    <div class="shop-header mb-5 text-center">
+        <h1 class="shop-title">
+            Boutique <span class="accent">BasketWorld</span>
+        </h1>
+        <p class="shop-subtitle">
+            Recharge tes coins et réserve les plus grands matchs NBA & EuroLeague.
+        </p>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-center p-3">
-            <h4>Pack Fan</h4>
-            <p class="text-secondary">50 coins</p>
-            <form method="get" asp-controller="Checkout" asp-action="Start">
-                <input type="hidden" name="amount" value="50" />
-                <button type="submit" class="btn btn-warning">Acheter 50 coins</button>
-            </form>
-        </div>
-    </div>
+    @if (TempData["ok"] != null)
+    {
+        <div class="alert alert-success text-center">@TempData["ok"]</div>
+    }
+    @if (TempData["err"] != null)
+    {
+        <div class="alert alert-danger text-center">@TempData["err"]</div>
+    }
 
-    <div class="col-md-4">
-        <div class="card text-center p-3">
-            <h4>Pack Pro</h4>
-            <p class="text-secondary">100 coins</p>
-            <form method="get" asp-controller="Checkout" asp-action="Start">
-                <input type="hidden" name="amount" value="100" />
-                <button type="submit" class="btn btn-warning">Acheter 100 coins</button>
-            </form>
+    <!-- Packs -->
+    <div class="row g-4 justify-content-center">
+
+        <!-- Pack Débutant -->
+        <div class="col-md-4">
+            <div class="shop-card">
+                <div class="shop-card-header">
+                    <h3>Pack Débutant</h3>
+                </div>
+
+                <div class="shop-card-body">
+                    <div class="coins">10 <span>coins</span></div>
+                    <div class="price">10 €</div>
+
+                    <ul class="features">
+                        <li>✔ 10 réservations</li>
+                        <li>✔ Accès aux matchs live</li>
+                        <li>✔ Sans engagement</li>
+                    </ul>
+
+                    <form method="get" asp-controller="Checkout" asp-action="Start">
+                        <input type="hidden" name="amount" value="10" />
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">
+                            Acheter
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
+
+        <!-- Pack Fan -->
+        <div class="col-md-4">
+            <div class="shop-card highlight">
+                <div class="badge-popular">🔥 Le plus populaire</div>
+
+                <div class="shop-card-header">
+                    <h3>Pack Fan</h3>
+                </div>
+
+                <div class="shop-card-body">
+                    <div class="coins">50 <span>coins</span></div>
+                    <div class="price">45 €</div>
+
+                    <ul class="features">
+                        <li>✔ 50 réservations</li>
+                        <li>✔ Matchs NBA & EuroLeague</li>
+                        <li>✔ Meilleur rapport qualité/prix</li>
+                    </ul>
+
+                    <form method="get" asp-controller="Checkout" asp-action="Start">
+                        <input type="hidden" name="amount" value="45" />
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">
+                            Acheter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pack Pro -->
+        <div class="col-md-4">
+            <div class="shop-card">
+                <div class="shop-card-header">
+                    <h3>Pack Pro</h3>
+                </div>
+
+                <div class="shop-card-body">
+                    <div class="coins">100 <span>coins</span></div>
+                    <div class="price">90 €</div>
+
+                    <ul class="features">
+                        <li>✔ 100 réservations</li>
+                        <li>✔ Accès illimité aux saisons</li>
+                        <li>✔ Pour les vrais fans</li>
+                    </ul>
+
+                    <form method="get" asp-controller="Checkout" asp-action="Start">
+                        <input type="hidden" name="amount" value="90" />
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">
+                            Acheter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<style>
+/* ---- Global ---- */
+.shop-wrapper {
+    padding: 2rem 0 3rem;
+    color: #f8f9fa;
+}
+
+.accent {
+    color: var(--orange, #ff8c00);
+}
+
+/* ---- Header ---- */
+.shop-title {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.shop-subtitle {
+    max-width: 600px;
+    margin: 0.75rem auto 0;
+    color: rgba(248,250,252,0.8);
+}
+
+/* ---- Cards ---- */
+.shop-card {
+    position: relative;
+    background: linear-gradient(180deg, #0f172a, #020617);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.shop-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+}
+
+.shop-card.highlight {
+    border-color: var(--orange, #ff8c00);
+}
+
+/* ---- Popular badge ---- */
+.badge-popular {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--orange, #ff8c00);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+}
+
+/* ---- Card header ---- */
+.shop-card-header {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.shop-card-header h3 {
+    margin: 0;
+    font-weight: 700;
+}
+
+/* ---- Card body ---- */
+.shop-card-body {
+    padding: 1.75rem;
+    text-align: center;
+}
+
+.coins {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--orange, #ff8c00);
+}
+
+.coins span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(248,250,252,0.7);
+}
+
+.price {
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    color: rgba(248,250,252,0.85);
+}
+
+/* ---- Features ---- */
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 1.25rem 0 1.5rem;
+    text-align: left;
+    font-size: 0.95rem;
+}
+
+.features li {
+    margin-bottom: 0.4rem;
+}
+
+/* ---- Buttons ---- */
+.shop-card .btn-warning {
+    background: var(--orange, #ff8c00);
+    border-color: var(--orange, #ff8c00);
+    color: #000;
+    border-radius: 999px;
+    padding: 0.6rem 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.shop-card .btn-warning:hover {
+    filter: brightness(1.05);
+}
+</style>

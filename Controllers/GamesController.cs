@@ -56,14 +56,14 @@ namespace BasketWorld.Controllers
                 return RedirectToAction(nameof(Watch), new { id });
             }
 
-            // assez de coins ?
-            if (user.Coins < 1)
+            // assez de crédits ?
+            if (user.crédits < 1)
             {
-                TempData["err"] = "Solde insuffisant (1 coin nécessaire).";
+                TempData["err"] = "Solde insuffisant (1 Crédit nécessaire).";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            user.Coins -= 1;
+            user.crédits -= 1;
             _ctx.GameAccesses.Add(new GameAccess { GameId = id, UserId = userId });
             await _ctx.SaveChangesAsync();
 

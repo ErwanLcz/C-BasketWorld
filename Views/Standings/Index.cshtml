@@ -1,0 +1,70 @@
+@using BasketWorld.ViewModels
+@model List<StandingRowVM>
+
+@{
+    var league = ViewBag.League;
+    string season = ViewBag.Season; // Maintenant c'est une string (ex: "2025-2026")
+    ViewData["Title"] = $"Classement {league.Name}";
+}
+
+<div class="container" style="max-width:1100px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <div>
+            <h1 class="mb-1" style="color:var(--orange)">@league.Name — Classement</h1>
+            <div class="text-secondary">Saison @season</div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-warning"
+               asp-controller="Standings" asp-action="Index" asp-route-leagueName="NBA" asp-route-season="@season.Split('-')[0]">NBA</a>
+            <a class="btn btn-outline-warning"
+               asp-controller="Standings" asp-action="Index" asp-route-leagueName="EuroLeague" asp-route-season="@season.Split('-')[0]">EuroLeague</a>
+        </div>
+    </div>
+
+    <div class="card bg-dark text-white border border-warning shadow-lg">
+        <div class="table-responsive">
+            <table class="table table-dark table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Équipe</th>
+                        <th class="text-center">MJ</th>
+                        <th class="text-center">V</th>
+                        <th class="text-center">D</th>
+                        <th class="text-center">%</th>
+                        <th class="text-center">PF</th>
+                        <th class="text-center">PA</th>
+                        <th class="text-center">Diff</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var r = Model[i];
+                    <tr>
+                        <td class="fw-bold">@(@i + 1)</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="@(r.LogoUrl ?? "/images/logos/default.png")"
+                                     style="width:28px;height:28px;object-fit:contain;"
+                                     onerror="this.onerror=null;this.src='/images/logos/default.png';" />
+                                <span class="fw-semibold">@r.TeamName</span>
+                            </div>
+                        </td>
+                        <td class="text-center">@r.Played</td>
+                        <td class="text-center text-success fw-semibold">@r.Wins</td>
+                        <td class="text-center text-danger fw-semibold">@r.Losses</td>
+                        <td class="text-center">@r.WinPct.ToString("0.000")</td>
+                        <td class="text-center">@r.PointsFor</td>
+                        <td class="text-center">@r.PointsAgainst</td>
+                        <td class="text-center @(r.Diff >= 0 ? "text-success" : "text-danger") fw-semibold">
+                            @(r.Diff >= 0 ? "+" : "")@r.Diff
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

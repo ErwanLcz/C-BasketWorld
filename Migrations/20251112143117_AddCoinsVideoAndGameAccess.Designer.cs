@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BasketWorld.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251112143117_AddCoinsVideoAndGameAccess")]
-    partial class AddCoinsVideoAndGameAccess
+    [Migration("20251112143117_AddcréditsVideoAndGameAccess")]
+    partial class AddcréditsVideoAndGameAccess
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,7 +28,7 @@ namespace BasketWorld.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Coins")
+                    b.Property<int>("crédits")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ConcurrencyStamp")

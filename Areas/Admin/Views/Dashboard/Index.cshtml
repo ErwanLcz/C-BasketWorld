@@ -1,37 +1,9 @@
 @using BasketWorld.Models
-@model IEnumerable<Game>
+@using Microsoft.AspNetCore.Identity
+@model IEnumerable<ApplicationUser>
+@inject UserManager<ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Admin Dashboard";
-    string ShortTeamName(string? raw)
-    {
-      if (string.IsNullOrWhiteSpace(raw)) return "";
-
-      return raw.ToUpperInvariant() switch
-      {
-          "ANADOLU EFES ISTANBUL" => "Anadolu",
-          "AS MONACO" => "Monaco",
-          "KOSNER BASKONIA VITORIA-GASTEIZ" => "Baskonia",
-          "FC BAYERN MUNICH" => "Bayern",
-          "ZALGIRIS KAUNAS" => "Zalgiris",
-          "FC BARCELONA" => "Barcelona",
-          "DUBAI BASKETBALL" => "Dubai",
-          "FENERBAHCE BEKO ISTANBUL" => "Fenerbahce",
-          "HAPOEL IBI TEL AVIV" => "Hapoel",
-          "PARTIZAN MOZZART BET BELGRADE" => "Partizan",
-          "LDLC ASVEL VILLEURBANNE" => "ASVEL",
-          "MACCABI RAPYD TEL AVIV" => "Maccabi",
-          "EA7 EMPORIO ARMANI MILAN" => "Milano", // ou "Olimpia Milano"
-          "OLYMPIACOS PIRAEUS" => "Olympiacos",
-          "PANATHINAIKOS AKTOR ATHENS" => "Panathinaikos",
-          "CRVENA ZVEZDA MERIDIANBET BELGRADE" => "Crvena",
-          "PARIS BASKETBALL" => "Paris",
-          "REAL MADRID" => "Real Madrid",
-          "VALENCIA BASKET" => "Valencia",
-          "VIRTUS BOLOGNA" => "Bologna",
-          "MERIDIANS" => "Meridians",
-          _ => raw
-      };
-    }
 }
 
 <div class="admin-page">
@@ -39,7 +11,7 @@
     <header class="admin-header">
         <div>
             <h1 class="admin-title">Dashboard Admin</h1>
-            <p class="admin-subtitle">Synchronisation des ligues + contrôle rapide des matchs en base.</p>
+            <p class="admin-subtitle">Synchronisation des ligues + gestion des utilisateurs.</p>
         </div>
     </header>
 
@@ -75,6 +47,11 @@
                    asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNba"
                    asp-route-past="7" asp-route-next="7" asp-route-mode="expand" asp-route-minMatches="5">
                     Syncro NBA
+                </a>
+                <a class="btnx btnx-outline"
+                    asp-area="Admin" asp-controller="Dashboard" asp-action="SyncNbaSeason"
+                    asp-route-season="2025">
+                    Sync NBA — Saison 2025
                 </a>
             </div>
         </section>
@@ -118,77 +95,146 @@
 
     </div>
 
-    <!-- Liste matchs -->
+    <!-- Liste utilisateurs -->
     <section class="cardx mt-3">
         <div class="cardx-head">
             <div>
-                <h2 class="cardx-title">Derniers matchs NBA en base</h2>
-                <div class="cardx-desc">Source : <span class="muted">balldontlie</span></div>
+                <h2 class="cardx-title">Gestion des utilisateurs</h2>
+                <div class="cardx-desc">Modifier les rôles et les crédits</div>
             </div>
-            <span class="tag tag-soft">DATA</span>
+            <span class="tag tag-soft">USERS</span>
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty">
-                <div class="empty-title">Aucun match trouvé</div>
-                <div class="empty-text">Lance un sync NBA ci-dessus pour remplir la base.</div>
+                <div class="empty-title">Aucun utilisateur trouvé</div>
             </div>
         }
         else
         {
-            <div class="games-list">
-                @foreach (var g in Model)
-                {
-                    var isFinal = string.Equals(g.Status, "Final", StringComparison.OrdinalIgnoreCase)
-                                  && g.HomeScore.HasValue && g.AwayScore.HasValue;
-
-                    var homeName = ShortTeamName(g.HomeTeam.Name) ?? "Home";
-                    var awayName = ShortTeamName(g.AwayTeam?.Name) ?? "Away";
-                    var homeLogo = Url.Content(g.HomeTeam?.LogoUrl ?? "~/images/logos/default.png");
-                    var awayLogo = Url.Content(g.AwayTeam?.LogoUrl ?? "~/images/logos/default.png");
-
-                    <div class="game-row">
-                        <div class="game-date">
-                            <div class="date-main">@g.StartAt.ToLocalTime().ToString("dd/MM/yyyy")</div>
-                            <div class="date-sub">@g.StartAt.ToLocalTime().ToString("HH:mm")</div>
-                        </div>
-
-                        <div class="game-match">
-                            <div class="teamline">
-                                <img class="tiny-logo" src="@homeLogo"
-                                     onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
-                                <span class="teamname" title="@g.HomeTeam?.Name">@homeName</span>
-                            </div>
-
-                            <div class="vs">vs</div>
-
-                            <div class="teamline right">
-                                <span class="teamname" title="@g.AwayTeam?.Name">@awayName</span>
-                                <img class="tiny-logo" src="@awayLogo"
-                                     onerror="this.onerror=null;this.src='@Url.Content("~/images/logos/default.png")';" />
-                            </div>
-                        </div>
-
-                        <div class="game-status">
-                            @if (isFinal)
+            <div class="users-list">
+                <div class="users-table-wrapper">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Crédits</th>
+                                <th>Inscrit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
                             {
-                                <span class="status status-final">Final</span>
-                                <span class="score">@g.HomeScore - @g.AwayScore</span>
+                                var roles = await UserManager.GetRolesAsync(user);
+                                var role = roles.FirstOrDefault() ?? "user";
+                                
+                                <tr>
+                                    <td class="user-name">
+                                        <strong>@(user.FullName ?? user.UserName)</strong>
+                                    </td>
+                                    <td class="user-email">@user.Email</td>
+                                    <td>
+                                        <span class="badge badge-@(role == "admin" ? "orange" : "soft")">
+                                            @role.ToUpper()
+                                        </span>
+                                    </td>
+                                    <td class="user-credits">
+                                        <strong>@user.crédits</strong>
+                                    </td>
+                                    <td class="user-date">
+                                        @user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td class="user-actions">
+                                        <button type="button" class="edit-btn" 
+                                                data-user-id="@user.Id" 
+                                                data-user-name="@user.UserName"
+                                                data-user-role="@role"
+                                                data-user-credits="@user.crédits"
+                                                onclick="openUserModal(this)">
+                                            Modifier
+                                        </button>
+                                    </td>
+                                </tr>
                             }
-                            else
-                            {
-                                <span class="status status-upcoming">
-                                    @(string.IsNullOrWhiteSpace(g.Status) ? "Scheduled" : g.Status)
-                                </span>
-                            }
-                        </div>
-                    </div>
-                }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         }
     </section>
+
+    <!-- Modal Modification Utilisateur -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modifier utilisateur</h3>
+                <button type="button" class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="editUserForm" method="post" asp-area="Admin" asp-controller="Dashboard" asp-action="UpdateUser">
+                    <input type="hidden" id="userId" name="userId" />
+                    
+                    <div class="form-group">
+                        <label for="userRole">Rôle</label>
+                        <select id="userRole" name="newRole" class="form-control">
+                            <option value="">Utilisateur</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userCredits">Crédits</label>
+                        <input type="number" id="userCredits" name="creditAmount" min="0" class="form-control" />
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="submit" class="btnx btnx-green">
+                            Mettre à jour
+                        </button>
+                        <button type="button" class="btnx btnx-outline" onclick="closeUserModal()">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<script>
+    function openUserModal(btn) {
+        const userId = btn.getAttribute('data-user-id');
+        const userName = btn.getAttribute('data-user-name');
+        const userRole = btn.getAttribute('data-user-role');
+        const userCredits = btn.getAttribute('data-user-credits');
+        
+        document.getElementById('modalTitle').textContent = `Modifier ${userName}`;
+        document.getElementById('userId').value = userId;
+        document.getElementById('userRole').value = userRole === 'admin' ? 'admin' : '';
+        document.getElementById('userCredits').value = userCredits;
+        
+        document.getElementById('userModal').classList.add('active');
+    }
+    
+    function closeUserModal() {
+        document.getElementById('userModal').classList.remove('active');
+    }
+    
+    // Fermer la modale en cliquant en dehors
+    document.getElementById('userModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeUserModal();
+        }
+    });
+</script>
+
+
 
 <style>
     :root { --orange: var(--orange, #ff8c00); }
@@ -375,106 +421,246 @@
     .empty-title{ font-weight: 900; margin-bottom:.25rem; }
     .empty-text{ color: rgba(249,250,251,.70); }
 
-    /* Games list */
-    .games-list{ padding: .75rem 1.0rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
-
-    .game-row{
-        display:grid;
-        grid-template-columns: 140px 1fr 220px;
-        gap: 1rem;
-        align-items:center;
-        padding: .85rem 1rem;
-        border-radius: 1rem;
-        border: 1px solid rgba(255,255,255,.08);
+    /* Users list */
+    .users-list { padding: 0; }
+    
+    .users-table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: transparent;
+    }
+    
+    .users-table thead {
+        background: rgba(15,23,42,.55);
+        border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    
+    .users-table th {
+        padding: 1rem 1.2rem;
+        text-align: left;
+        font-weight: 900;
+        font-size: .85rem;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: rgba(249,250,251,.85);
+    }
+    
+    .users-table tbody tr {
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        transition: background 0.15s ease;
+    }
+    
+    .users-table tbody tr:hover {
         background: rgba(15,23,42,.35);
     }
-
-    .game-date .date-main{ font-weight: 900; }
-    .game-date .date-sub{ color: rgba(249,250,251,.65); font-size: .9rem; }
-
-    .game-match{
-        display:grid;
-        grid-template-columns: 1fr 40px 1fr;
-        align-items:center;
-        gap: .5rem;
-        min-width:0;
+    
+    .users-table td {
+        padding: 1rem 1.2rem;
+        color: rgba(249,250,251,.85);
     }
-
-    .teamline{
-        display:flex;
-        align-items:center;
-        gap:.6rem;
-        min-width:0;
+    
+    .user-name {
+        font-weight: 600;
+        color: #fff;
     }
-    .teamline.right{ justify-content:flex-end; text-align:right; }
-
-    .tiny-logo{
-        width: 34px;
-        height: 34px;
-        object-fit: contain;
-        border-radius: .7rem;
-        padding:.35rem;
-        background: rgba(255,255,255,.06);
-        border: 1px solid rgba(255,255,255,.10);
+    
+    .user-email {
+        font-size: .9rem;
+        color: rgba(249,250,251,.75);
     }
-
-    .teamname{
-        font-weight: 900;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-        max-width: 100%;
+    
+    .user-credits {
+        color: #ffd6a5;
+        font-size: 1.05rem;
     }
-
-    .vs{
-        text-align:center;
-        color: rgba(249,250,251,.55);
-        font-weight: 900;
-        letter-spacing:.2em;
+    
+    .user-date {
+        font-size: .9rem;
+        color: rgba(249,250,251,.7);
     }
-
-    .game-status{
-        display:flex;
-        justify-content:flex-end;
-        gap:.6rem;
-        align-items:center;
-        white-space:nowrap;
+    
+    .user-actions {
+        white-space: nowrap;
     }
-
-    .status{
-        padding: .25rem .65rem;
-        border-radius: 999px;
+    
+    .edit-btn {
+        background: rgba(255,140,0,.15);
+        border: 1px solid rgba(255,140,0,.30);
+        color: #ffd6a5;
+        padding: .45rem .75rem;
+        border-radius: .6rem;
+        font-weight: 700;
         font-size: .8rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    
+    .edit-btn:hover {
+        background: rgba(255,140,0,.25);
+        border-color: rgba(255,140,0,.50);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: .35rem .65rem;
+        border-radius: 999px;
         font-weight: 900;
+        font-size: .75rem;
+        letter-spacing: .04em;
+        text-transform: uppercase;
         border: 1px solid rgba(255,255,255,.10);
         background: rgba(148,163,184,.10);
         color: rgba(249,250,251,.85);
     }
-    .status-final{
-        background: rgba(16,185,129,.12);
-        border-color: rgba(16,185,129,.30);
-        color: #bbf7d0;
-    }
-    .status-upcoming{
-        background: rgba(255,140,0,.10);
-        border-color: rgba(255,140,0,.25);
+    
+    .badge-orange {
+        background: rgba(255,140,0,.12);
+        border-color: rgba(255,140,0,.30);
         color: #ffd6a5;
     }
+    
+    .badge-soft {
+        background: rgba(148,163,184,.10);
+        border-color: rgba(148,163,184,.25);
+        color: rgba(249,250,251,.85);
+    }
 
-    .score{ font-weight: 950; font-size: 1.05rem; color:#fff; }
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal.active {
+        display: flex;
+    }
+    
+    .modal-content {
+        background: #0b1120;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 1.25rem;
+        box-shadow: 0 20px 50px rgba(0,0,0,.5);
+        width: 90%;
+        max-width: 420px;
+        animation: slideIn 0.3s ease;
+    }
+    
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-header h3 {
+        margin: 0;
+        font-weight: 900;
+        color: #fff;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        color: rgba(249,250,251,.7);
+        font-size: 1.8rem;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s ease;
+    }
+    
+    .modal-close:hover {
+        color: #fff;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: .5rem;
+        font-weight: 700;
+        color: #fff;
+        font-size: .9rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: .75rem;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: .6rem;
+        color: #fff;
+        font-family: inherit;
+        font-size: .95rem;
+        outline: none;
+        transition: all 0.15s ease;
+    }
+    
+    .form-control:focus {
+        background: rgba(255,255,255,.10);
+        border-color: rgba(255,140,0,.30);
+        color: #fff;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: .75rem;
+        margin-top: 1.5rem;
+    }
+    
+    .modal-actions button {
+        flex: 1;
+    }
 
     @@media (max-width: 1100px){
         .grid{ grid-template-columns: 1fr; }
-        .game-row{ grid-template-columns: 120px 1fr; }
-        .game-status{ grid-column: 1 / -1; justify-content:flex-start; }
     }
 
     @@media (max-width: 650px){
         .admin-header{ flex-direction:column; align-items:flex-start; }
-        .game-row{ grid-template-columns: 1fr; }
-        .game-status{ justify-content:flex-start; }
-        .game-match{ grid-template-columns: 1fr; }
-        .teamline.right{ justify-content:flex-start; text-align:left; }
-        .vs{ display:none; }
+        .users-table-wrapper {
+            overflow-x: auto;
+        }
+        .users-table {
+            min-width: 600px;
+        }
+        .modal-content {
+            width: 95%;
+        }
     }
 </style>

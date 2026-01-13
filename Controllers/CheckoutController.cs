@@ -10,7 +10,13 @@ namespace BasketWorld.Controllers
     [Route("Checkout")]
     public class CheckoutController : Controller
     {
-        private static readonly int[] AllowedPacks = new[] { 10, 50, 100 };
+        // Prix en € -> Nombre de coins
+        private static readonly Dictionary<int, int> PriceToCoinsPacks = new()
+        {
+            { 10, 10 },   // 10€ = 10 coins
+            { 45, 50 },   // 45€ = 50 coins
+            { 90, 100 }   // 90€ = 100 coins
+        };
 
         private readonly ApplicationDbContext _ctx;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -21,19 +27,29 @@ namespace BasketWorld.Controllers
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Convertit un prix en nombre de coins
+        /// </summary>
+        private int GetCoinsForPrice(int price)
+        {
+            return PriceToCoinsPacks.TryGetValue(price, out var coins) ? coins : 0;
+        }
+
         [HttpGet("Start")]
         public IActionResult Start(int amount)
         {
-            if (!AllowedPacks.Contains(amount))
+            if (!PriceToCoinsPacks.ContainsKey(amount))
             {
                 TempData["err"] = "Montant invalide.";
                 return RedirectToAction("Index", "Shop");
             }
 
+            var coins = GetCoinsForPrice(amount);
             var vm = new FakeCheckoutViewModel
             {
                 Amount = amount,
-                ProductLabel = $"{amount} coins"
+                Coins = coins,
+                ProductLabel = $"{coins} crédits"
             };
             return View("Index", vm);
         }
@@ -43,9 +59,11 @@ namespace BasketWorld.Controllers
         public async Task<IActionResult> Pay(FakeCheckoutPostModel form)
         {
             // On NE valide PAS réellement la carte : tout passe.
-            if (!AllowedPacks.Contains(form.Amount))
+            if (!PriceToCoinsPacks.ContainsKey(form.Amount))
             {
-                TempData["err"] = "Montant invalide.";
+                TempData["toast_type"] = "error";
+                TempData["toast_title"] = "Oups…";
+                TempData["toast_msg"] = "Montant invalide.";
                 return RedirectToAction("Index", "Shop");
             }
 
@@ -56,17 +74,21 @@ namespace BasketWorld.Controllers
                 return RedirectToAction("Login", "Account", new { area = "Identity" });
             }
 
-            user.Coins += form.Amount;
+            var coins = GetCoinsForPrice(form.Amount);
+            user.crédits += coins;
             await _ctx.SaveChangesAsync();
 
-            TempData["ok"] = $"Paiement simulé réussi ✅ Vous avez reçu {form.Amount} coins.";
+            TempData["toast_type"] = "success";          // success | error | info
+            TempData["toast_title"] = "Paiement validé ✅";
+            TempData["toast_msg"] = $"Tu as reçu +{coins} coins. Bon match !";
             return RedirectToAction("Index", "Shop");
         }
     }
 
     public class FakeCheckoutViewModel
     {
-        public int Amount { get; set; }
+        public int Amount { get; set; }      // Prix en €
+        public int Coins { get; set; }       // Nombre de coins reçus
         public string ProductLabel { get; set; } = "";
     }
 

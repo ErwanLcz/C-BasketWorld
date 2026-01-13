@@ -25,7 +25,7 @@ namespace BasketWorld.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Coins")
+                    b.Property<int>("crédits")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ConcurrencyStamp")

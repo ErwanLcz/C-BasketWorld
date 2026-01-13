@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BasketWorld.Data;
+using Microsoft.AspNetCore.Identity;
+using BasketWorld.Models;
 
 namespace BasketWorld.Areas.Admin.Controllers
 {
@@ -14,18 +16,21 @@ namespace BasketWorld.Areas.Admin.Controllers
         private readonly ApplicationDbContext _ctx;
         private readonly EuroleagueSyncService _euroSync;
         private readonly EuroleagueOfficialSyncService _euroOfficial;
+        private readonly UserManager<ApplicationUser> _userManager;
 
 
         public DashboardController(
             NbaSyncService sync,
             EuroleagueSyncService euroSync,
             EuroleagueOfficialSyncService euroOfficial,
-            ApplicationDbContext ctx)
+            ApplicationDbContext ctx,
+            UserManager<ApplicationUser> userManager)
         {
             _sync = sync;
             _euroSync = euroSync;
-            _euroOfficial = euroOfficial;  // ✅ maintenant c'est un paramètre
+            _euroOfficial = euroOfficial;
             _ctx = ctx;
+            _userManager = userManager;
         }
 
 
@@ -95,21 +100,35 @@ namespace BasketWorld.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Areas/Admin/Controllers/DashboardController.cs
+        public async Task<IActionResult> SyncNbaSeason(int season = 2025)
+        {
+            try
+            {
+                // Saison NBA 2025 = Oct 2025 -> Juin 2026 (tu peux élargir si tu veux playoffs)
+                var from = new DateTime(season, 10, 1, 0, 0, 0, DateTimeKind.Utc);
+                var to   = new DateTime(season + 1, 6, 30, 0, 0, 0, DateTimeKind.Utc);
+
+                var (t, g) = await _sync.SyncAsync(from, to);
+                TempData["msg"] = $"Sync NBA saison {season}: Teams upserts={t}, Games upserts={g}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["err"] = "Échec sync NBA saison : " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
         public async Task<IActionResult> Index()
         {
-            var nba = await _ctx.Leagues.FirstOrDefaultAsync(l => l.Name == "NBA");
-            var games = Enumerable.Empty<Models.Game>();
-            if (nba != null)
-            {
-                games = await _ctx.Games
-                    .Where(g => g.LeagueId == nba.Id && g.Source == "balldontlie")
-                    .Include(g => g.HomeTeam)
-                    .Include(g => g.AwayTeam)
-                    .OrderByDescending(g => g.StartAt)
-                    .Take(50)
-                    .ToListAsync();
-            }
-            return View(games);
+            var users = await _ctx.Users
+                .AsNoTracking()
+                .OrderBy(u => u.UserName)
+                .ToListAsync();
+            
+            return View(users);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -145,8 +164,44 @@ namespace BasketWorld.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateUser(string userId, string newRole, int creditAmount)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    TempData["err"] = "Utilisateur non trouvé.";
+                    return RedirectToAction("Index");
+                }
 
+                // Mettre à jour le rôle
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                if (currentRoles.Any())
+                {
+                    await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                }
 
+                if (!string.IsNullOrEmpty(newRole))
+                {
+                    await _userManager.AddToRoleAsync(user, newRole);
+                }
+
+                // Mettre à jour les crédits
+                user.crédits = creditAmount;
+                _ctx.Users.Update(user);
+                await _ctx.SaveChangesAsync();
+
+                TempData["msg"] = $"Utilisateur {user.UserName} mis à jour avec succès.";
+            }
+            catch (Exception ex)
+            {
+                TempData["err"] = "Erreur mise à jour : " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }
